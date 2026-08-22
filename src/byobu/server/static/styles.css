@@ -1117,6 +1117,12 @@ footer {
   letter-spacing: 0.12em;
 }
 
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 .footer-link {
   color: inherit;
   text-decoration: none;

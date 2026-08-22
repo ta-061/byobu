@@ -111,6 +111,8 @@ python -m unittest discover -s tests -v
 
 byobu は AGPL-3.0 で公開しています。詳細は [LICENSE](LICENSE) を参照してください。
 
+Copyright (C) 2026 ta-061. Released under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
+
 PyMuPDF(および内部で使われるMuPDF)は AGPL-3.0 または商用ライセンスのデュアルライセンスで配布されています。byobu を再配布したり、ネットワークサービスとして提供する場合は、事前にライセンス条件を確認してください。
 
 byobu を改変してネットワーク経由で他者に利用させる場合(例:改変版のWebアプリを自前でホストする場合)、AGPL-3.0 第13条により、利用者に対応するソースコードを提供する必要があります。Webアプリのフッターにある「Source code」リンクは、セルフホストする方が自分のソースコードへのリンクを設置すべき場所です。

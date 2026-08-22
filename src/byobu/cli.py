@@ -1,3 +1,18 @@
+# byobu - layout-aware PDF diff for revisions.
+# Copyright (C) 2026  ta-061
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published
+# by the Free Software Foundation, version 3 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 """Command-line interface for byobu."""
 
 from __future__ import annotations
@@ -200,6 +215,10 @@ def _run_serve(args: argparse.Namespace) -> int:
     if args.jobs_dir is not None:
         os.environ["JOBS_DIR"] = args.jobs_dir
 
+    print(f"byobu {__version__}  Copyright (C) 2026 ta-061")
+    print("License: AGPL-3.0-only <https://www.gnu.org/licenses/agpl-3.0.html>")
+    print("Source code: https://github.com/ta-061/byobu")
+    print("This is free software: you are free to change and redistribute it under the terms of the AGPL.")
     uvicorn.run("byobu.server.app:app", host=args.host, port=args.port)
     return 0
 
