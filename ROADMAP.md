@@ -14,5 +14,5 @@ Prioritized, roughly highest-impact first. Not a commitment or a schedule.
 10. ~~Split `engine.py` into submodules as it continues to grow~~ (done in 0.1.5)
 11. CI matrix hardening (more platforms, pinned dependency ranges, coverage reporting)
 12. Process-pool isolation for `compare_pdfs`, so a timed-out comparison job can actually be `terminate()`-d instead of merely abandoned in a thread
-13. Docker base-image digest pinning (`node:26-alpine`, `python:3.14-slim`) instead of mutable tags
-14. Evaluate a dependency lockfile (`pip-compile`/`uv lock`) for reproducible, reviewable Python dependency bumps
+13. ~~Docker base-image digest pinning (`node:26-alpine`, `python:3.14-slim`) instead of mutable tags~~ (done in 0.1.5)
+14. Evaluate a dependency lockfile (`pip-compile`/`uv lock`) for reproducible, reviewable Python dependency bumps (major-version upper bounds were added in 0.1.5)
