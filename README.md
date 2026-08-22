@@ -6,7 +6,7 @@ kogo (校合) is the Japanese publishing term for checking a revision against th
 
 ![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
-Website: <https://portfolio.tatu-sec.dev/kogo/>
+Website: <https://kogo.tatu-sec.dev/>
 
 ## Features
 

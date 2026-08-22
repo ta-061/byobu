@@ -6,7 +6,7 @@ kogo(校合)は、改訂版を原本と照合するという意味の、日本�
 
 ![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
-プロジェクトサイト: <https://portfolio.tatu-sec.dev/kogo/>
+プロジェクトサイト: <https://kogo.tatu-sec.dev/>
 
 ## 主な機能
 
