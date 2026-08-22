@@ -4,6 +4,8 @@ Layout-aware PDF diff for revisions — compare an old and new PDF and highlight
 
 The name comes from *byobu* (屏風), a Japanese folding screen: two panels standing side by side, much like the side-by-side comparison view this tool produces.
 
+![byobu results](docs/screenshot-results.png)
+
 ## Features
 
 - Word-level text diff for Latin text, character-level precision for CJK (Chinese, Japanese, Korean) text
