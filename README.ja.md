@@ -4,9 +4,9 @@ kogo は、更新前と更新後のPDFを比較し、追加・削除された文
 
 kogo(校合)は、改訂版を原本と照合するという意味の、日本の出版用語に由来する名前です。
 
-![kogo results](docs/screenshot-results.png)
+![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
-プロジェクトサイト: <https://ta-061.github.io/kogo/>(`main` への次回pushで公開されます)
+プロジェクトサイト: <https://portfolio.tatu-sec.dev/kogo/>
 
 ## 主な機能
 

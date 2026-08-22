@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 - 2026-08-23 - Project site, PyPI page fix
+
+- Project website published (GitHub Pages): https://portfolio.tatu-sec.dev/kogo/
+- README screenshot now uses an absolute URL so it renders on the PyPI project page
+
 ## 0.1.1 - 2026-08-22 - Library API
 
 - Export `compare_pdfs` and `ComparisonError` from the top-level `kogo` package so `import kogo` is enough to use the diff engine as a library

@@ -4,9 +4,9 @@ Layout-aware PDF diff for revisions — compare an old and new PDF and highlight
 
 kogo (校合) is the Japanese publishing term for checking a revision against the original.
 
-![kogo results](docs/screenshot-results.png)
+![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
-Website: <https://ta-061.github.io/kogo/> (live after the next push to `main`)
+Website: <https://portfolio.tatu-sec.dev/kogo/>
 
 ## Features
 
