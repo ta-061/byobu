@@ -1,14 +1,14 @@
-# byobu
+# kogo
 
 Layout-aware PDF diff for revisions — compare an old and new PDF and highlight added or deleted text, figures, and annotations, in the browser and in marked PDFs.
 
-The name comes from *byobu* (屏風), a Japanese folding screen: two panels standing side by side, much like the side-by-side comparison view this tool produces.
+kogo (校合) is the Japanese publishing term for checking a revision against the original.
 
-![byobu results](docs/screenshot-results.png)
+![kogo results](docs/screenshot-results.png)
 
 ## Features
 
-- Word-level text diff for Latin text, character-level precision for CJK (Chinese, Japanese, Korean) text
+- Word-level text diff for Latin text, character-level precision for CJK (Chinese, Japanese, Korean) text, including rare kanji across CJK Extensions B-J
 - Reading order reconstructed from whitespace layout, so multi-column pages and slide-style text boxes are compared correctly instead of interleaved
 - Page alignment that tolerates inserted or removed pages, using both text and visual page signatures
 - Visual diff for figures, equations, and layout, with text areas masked out and scanner/export shift registration for image-only pages
@@ -24,19 +24,19 @@ The name comes from *byobu* (屏風), a Japanese folding screen: two panels stan
 ### CLI only
 
 ```bash
-pip install byobu
-byobu diff old.pdf new.pdf -o out/
+pip install kogo
+kogo diff old.pdf new.pdf -o out/
 ```
 
 ### Web app
 
 ```bash
-pip install "byobu[serve]"
-byobu fetch-viewer
-byobu serve
+pip install "kogo[serve]"
+kogo fetch-viewer
+kogo serve
 ```
 
-`byobu fetch-viewer` downloads the local PDF.js viewer assets used by the web preview (see [Configuration](#configuration)); it's not needed with Docker, which bundles them in the image.
+`kogo fetch-viewer` downloads the local PDF.js viewer assets used by the web preview (see [Configuration](#configuration)); it's not needed with Docker, which bundles them in the image.
 
 Then open <http://127.0.0.1:8080>.
 
@@ -49,14 +49,14 @@ docker compose up -d --build
 Then open <http://localhost:8080>. By default the container only binds to `127.0.0.1` (localhost). To share it on a LAN, there is no authentication built in, so only do this on a trusted network:
 
 ```bash
-BYOBU_HOST=0.0.0.0 docker compose up -d --build
+KOGO_HOST=0.0.0.0 docker compose up -d --build
 ```
 
 ## CLI usage
 
 ```bash
-byobu diff OLD.pdf NEW.pdf \
-  -o byobu-diff \
+kogo diff OLD.pdf NEW.pdf \
+  -o kogo-diff \
   --dpi 144 \
   --sensitivity standard \
   --max-pages 200
@@ -64,17 +64,17 @@ byobu diff OLD.pdf NEW.pdf \
 
 Options:
 
-- `-o, --out` — output directory (default `byobu-diff`)
+- `-o, --out` — output directory (default `kogo-diff`)
 - `--dpi` — rendering resolution for the visual diff, 96–180 (default 144)
 - `--sensitivity` — `high`, `standard`, or `low` (default `standard`)
 - `--max-pages` — maximum pages per file (default 200)
 - `--no-previews` — skip generating page preview images
 - `--json` — print the full result as JSON
 
-`byobu serve` runs the web application:
+`kogo serve` runs the web application:
 
 ```bash
-byobu serve --host 127.0.0.1 --port 8080
+kogo serve --host 127.0.0.1 --port 8080
 ```
 
 ## Configuration
@@ -83,12 +83,12 @@ The web app reads these environment variables:
 
 | Variable | Default | Description |
 |---|---:|---|
-| `JOBS_DIR` | `~/.local/share/byobu/jobs` | Where uploaded files and comparison results are stored |
+| `JOBS_DIR` | `~/.local/share/kogo/jobs` | Where uploaded files and comparison results are stored |
 | `MAX_UPLOAD_MB` | 100 | Maximum size per uploaded PDF |
 | `MAX_PAGES` | 200 | Maximum pages per PDF |
 | `JOB_TTL_HOURS` | 24 | How long comparison results are kept before cleanup |
 | `MAX_CONCURRENT_JOBS` | 2 | Number of comparisons processed at once |
-| `BYOBU_VENDOR_DIR` | `~/.local/share/byobu/vendor/pdfjs` | Where `byobu fetch-viewer` installs (and the server looks for) the local PDF.js viewer assets |
+| `KOGO_VENDOR_DIR` | `~/.local/share/kogo/vendor/pdfjs` | Where `kogo fetch-viewer` installs (and the server looks for) the local PDF.js viewer assets |
 
 ## How it works
 
@@ -101,7 +101,7 @@ Figures, equations, and other non-text layout are compared by rendering each pag
 - Scan-only PDFs (no embedded text layer) are compared visually; add an OCR text layer first if you need word-level text diffs
 - Password-protected PDFs are not supported
 - Complex tables and vertical text layouts may need a visual check in addition to the automated diff
-- There is no authentication built in. `byobu serve` and the default Docker Compose setup only bind to localhost; put the web app behind a reverse proxy with authentication before exposing it to anything beyond your local machine or trusted LAN
+- There is no authentication built in. `kogo serve` and the default Docker Compose setup only bind to localhost; put the web app behind a reverse proxy with authentication before exposing it to anything beyond your local machine or trusted LAN
 
 ## Development
 
@@ -111,13 +111,13 @@ python -m unittest discover -s tests -v
 
 ## License
 
-byobu is licensed under AGPL-3.0. See [LICENSE](LICENSE).
+kogo is licensed under AGPL-3.0. See [LICENSE](LICENSE).
 
 Copyright (C) 2026 ta-061. Released under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
 
-PyMuPDF (and the underlying MuPDF library) is distributed under AGPL-3.0-or-commercial; check its license terms before redistributing byobu or offering it as a network service.
+PyMuPDF (and the underlying MuPDF library) is distributed under AGPL-3.0-or-commercial; check its license terms before redistributing kogo or offering it as a network service.
 
-If you modify byobu and let others use it over a network (for example, by self-hosting a modified version of the web app), AGPL-3.0 §13 requires you to offer those users the corresponding source code. The "Source code" link in the web app's footer is where self-hosters should point to their source.
+If you modify kogo and let others use it over a network (for example, by self-hosting a modified version of the web app), AGPL-3.0 §13 requires you to offer those users the corresponding source code. The "Source code" link in the web app's footer is where self-hosters should point to their source.
 
 Credits:
 

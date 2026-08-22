@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,4 +13,4 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""byobu web application package."""
+"""kogo web application package."""

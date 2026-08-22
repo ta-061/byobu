@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -20,12 +20,12 @@ import shutil
 import tempfile
 import unittest
 
-_JOBS_DIR = tempfile.mkdtemp(prefix="byobu-test-jobs-")
+_JOBS_DIR = tempfile.mkdtemp(prefix="kogo-test-jobs-")
 os.environ["JOBS_DIR"] = _JOBS_DIR
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from byobu.server.app import app  # noqa: E402
+from kogo.server.app import app  # noqa: E402
 
 
 def tearDownModule() -> None:

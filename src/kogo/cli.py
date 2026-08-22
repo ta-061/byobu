@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -13,7 +13,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""Command-line interface for byobu."""
+"""Command-line interface for kogo."""
 
 from __future__ import annotations
 
@@ -28,8 +28,8 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from byobu import __version__
-from byobu.engine import ComparisonError, compare_pdfs
+from kogo import __version__
+from kogo.engine import ComparisonError, compare_pdfs
 
 # Keep in sync with ARG PDFJS_VERSION in Dockerfile.
 PDFJS_VERSION = "6.2.108"
@@ -54,7 +54,7 @@ PDFJS_DIR_MAP = (
 
 def _default_vendor_dir() -> Path:
     return Path(
-        os.getenv("BYOBU_VENDOR_DIR", "~/.local/share/byobu/vendor/pdfjs")
+        os.getenv("KOGO_VENDOR_DIR", "~/.local/share/kogo/vendor/pdfjs")
     ).expanduser()
 
 
@@ -76,7 +76,7 @@ def _add_diff_parser(subparsers: argparse._SubParsersAction) -> None:
     parser = subparsers.add_parser("diff", help="Compare two PDF revisions")
     parser.add_argument("old_pdf", type=Path)
     parser.add_argument("new_pdf", type=Path)
-    parser.add_argument("-o", "--out", default="byobu-diff")
+    parser.add_argument("-o", "--out", default="kogo-diff")
     parser.add_argument("--dpi", type=_dpi, default=144)
     parser.add_argument(
         "--sensitivity", choices=("high", "standard", "low"), default="standard"
@@ -88,7 +88,7 @@ def _add_diff_parser(subparsers: argparse._SubParsersAction) -> None:
 
 
 def _add_serve_parser(subparsers: argparse._SubParsersAction) -> None:
-    parser = subparsers.add_parser("serve", help="Run the byobu web application")
+    parser = subparsers.add_parser("serve", help="Run the kogo web application")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--jobs-dir", default=None)
@@ -134,7 +134,7 @@ def _run_diff(args: argparse.Namespace) -> int:
     print(f"{files['old']['name']} ({files['old']['pages']} pages) vs "
           f"{files['new']['name']} ({files['new']['pages']} pages)")
     print(f"Changed pages: {summary['changed_pages']} / {summary['compared_rows']}")
-    print(f"Added words: {summary['added_words']}  Deleted words: {summary['deleted_words']}")
+    print(f"Added tokens: {summary['added_words']}  Deleted tokens: {summary['deleted_words']}")
     print(f"Visual regions: {summary['visual_regions']}  Annotation changes: {summary['annotation_changes']}")
     print("Output files:")
     for artifact in artifacts.values():
@@ -168,7 +168,7 @@ def _run_fetch_viewer(args: argparse.Namespace) -> int:
     vendor_dir = args.dir if args.dir is not None else _default_vendor_dir()
     if (vendor_dir / VENDOR_COMPLETE_MARKER).is_file():
         print(f"PDF.js viewer assets are already installed at {vendor_dir}")
-        print('"byobu serve" will use the local viewer.')
+        print('"kogo serve" will use the local viewer.')
         return 0
 
     print(f"Downloading pdfjs-dist {PDFJS_VERSION}…")
@@ -198,7 +198,7 @@ def _run_fetch_viewer(args: argparse.Namespace) -> int:
         staging_dir.rename(vendor_dir)
 
     print(f"Installed the PDF.js viewer assets in {vendor_dir}")
-    print('"byobu serve" will now use the local viewer.')
+    print('"kogo serve" will now use the local viewer.')
     return 0
 
 
@@ -207,7 +207,7 @@ def _run_serve(args: argparse.Namespace) -> int:
         import uvicorn
     except ImportError:
         print(
-            'Web dependencies are missing. Install them with: pip install "byobu[serve]"',
+            'Web dependencies are missing. Install them with: pip install "kogo[serve]"',
             file=sys.stderr,
         )
         return 1
@@ -215,16 +215,16 @@ def _run_serve(args: argparse.Namespace) -> int:
     if args.jobs_dir is not None:
         os.environ["JOBS_DIR"] = args.jobs_dir
 
-    print(f"byobu {__version__}  Copyright (C) 2026 ta-061")
+    print(f"kogo {__version__}  Copyright (C) 2026 ta-061")
     print("License: AGPL-3.0-only <https://www.gnu.org/licenses/agpl-3.0.html>")
-    print("Source code: https://github.com/ta-061/byobu")
+    print("Source code: https://github.com/ta-061/kogo")
     print("This is free software: you are free to change and redistribute it under the terms of the AGPL.")
-    uvicorn.run("byobu.server.app:app", host=args.host, port=args.port)
+    uvicorn.run("kogo.server.app:app", host=args.host, port=args.port)
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(prog="byobu")
+    parser = argparse.ArgumentParser(prog="kogo")
     parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     subparsers = parser.add_subparsers(dest="command", required=True)
     _add_diff_parser(subparsers)

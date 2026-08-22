@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify

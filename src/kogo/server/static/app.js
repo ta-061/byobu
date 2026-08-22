@@ -197,9 +197,9 @@
     const values = [];
     if (kind === "added_page" && side === "new") values.push(["page-change", "Added page"]);
     if (kind === "deleted_page" && side === "old") values.push(["page-change", "Deleted page"]);
-    if (side === "new" && changes.added_words) values.push(["added", `+${changes.added_words} words`]);
-    if (side === "old" && changes.deleted_words) values.push(["deleted", `-${changes.deleted_words} words`]);
-    if (changes.visual_regions) values.push(["visual", `${changes.visual_regions} figures`]);
+    if (side === "new" && changes.added_words) values.push(["added", `+${changes.added_words} tokens`]);
+    if (side === "old" && changes.deleted_words) values.push(["deleted", `-${changes.deleted_words} tokens`]);
+    if (changes.visual_regions) values.push(["visual", `${changes.visual_regions} visual`]);
     if (side === "new" && changes.added_annotations) values.push(["added", `Annotations +${changes.added_annotations}`]);
     if (side === "old" && changes.deleted_annotations) values.push(["deleted", `Annotations -${changes.deleted_annotations}`]);
     if (changes.style_changes) values.push(["style", `${changes.style_changes} style`]);
@@ -254,8 +254,8 @@
     document.querySelector("#result-filenames").textContent = `${result.files.old.name}  →  ${result.files.new.name}`;
     document.querySelector("#summary-grid").innerHTML = [
       summaryCard("changed", "Changed pages", summary.changed_pages, "pages"),
-      summaryCard("added", "Added words", summary.added_words, "words"),
-      summaryCard("deleted", "Deleted words", summary.deleted_words, "words"),
+      summaryCard("added", "Added text", summary.added_words, "tokens"),
+      summaryCard("deleted", "Deleted text", summary.deleted_words, "tokens"),
       summaryCard("visual", "Figure & annotation changes", summary.visual_regions + annotationChanges, "spots"),
       summaryCard("style", "Style changes", summary.style_changes || 0, "words"),
     ].join("");
@@ -266,7 +266,7 @@
       downloadButton(artifacts.side_by_side, "Side-by-side", true),
     ].join("");
     setupPdfPreview(artifacts, "side_by_side");
-    document.querySelector("#viewer-caption").textContent = `Comparing ${summary.compared_rows} page pairs · green=added / red=deleted / purple=figures & layout / amber=style`;
+    document.querySelector("#viewer-caption").textContent = `Comparing ${summary.compared_rows} page pairs · green = added / red = deleted / purple = figures & layout / amber = style; dashed boxes mark annotation changes`;
     renderRows(result.rows);
     setFilter(summary.changed_pages > 0 ? "changed" : "all");
   }

@@ -7,4 +7,4 @@ build/
 venv/
 data/
 .pytest_cache/
-byobu-diff/
+kogo-diff/

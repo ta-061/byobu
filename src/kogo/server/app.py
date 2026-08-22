@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -32,12 +32,12 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from byobu import __version__
-from byobu.engine import ComparisonError, compare_pdfs
+from kogo import __version__
+from kogo.engine import ComparisonError, compare_pdfs
 
 
 APP_DIR = Path(__file__).resolve().parent
-JOBS_DIR = Path(os.getenv("JOBS_DIR", "~/.local/share/byobu/jobs")).expanduser().resolve()
+JOBS_DIR = Path(os.getenv("JOBS_DIR", "~/.local/share/kogo/jobs")).expanduser().resolve()
 MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_MB", "100")) * 1024 * 1024
 MAX_PAGES = int(os.getenv("MAX_PAGES", "200"))
 JOB_TTL_SECONDS = max(3600, int(os.getenv("JOB_TTL_HOURS", "24")) * 3600)
@@ -48,12 +48,12 @@ JOBS_DIR.mkdir(parents=True, exist_ok=True)
 # One semaphore per worker process: it bounds concurrency within this process only,
 # not across multiple uvicorn/gunicorn workers.
 comparison_slots = asyncio.Semaphore(MAX_CONCURRENT_JOBS)
-logger = logging.getLogger("byobu")
+logger = logging.getLogger("kogo")
 
 VENDOR_COMPLETE_MARKER = ".complete"
 _PACKAGE_VENDOR_DIR = APP_DIR / "static" / "vendor" / "pdfjs"
 _EXTERNAL_VENDOR_DIR = Path(
-    os.getenv("BYOBU_VENDOR_DIR", "~/.local/share/byobu/vendor/pdfjs")
+    os.getenv("KOGO_VENDOR_DIR", "~/.local/share/kogo/vendor/pdfjs")
 ).expanduser()
 
 
@@ -97,7 +97,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(
-    title="byobu",
+    title="kogo",
     description="Compare two revisions of a PDF and highlight added or deleted text, figures, and annotations.",
     version=__version__,
     docs_url=None,

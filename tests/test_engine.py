@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -21,7 +21,7 @@ from pathlib import Path
 
 import pymupdf as fitz
 
-from byobu.engine import _is_cjk, compare_pdfs
+from kogo.engine import _is_cjk, compare_pdfs
 
 
 def make_pdf(path: Path, pages: list[tuple[str, str]]) -> None:

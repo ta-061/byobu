@@ -5,22 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content="Compare an old and new PDF revision and clearly highlight added, deleted, and figure changes." />
     <meta name="theme-color" content="#17211f" />
-    <title>byobu — layout-aware PDF diff for revisions</title>
+    <title>kogo — layout-aware PDF diff for revisions</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%2317211f%22/><path d=%22M18 14h20l9 9v27H18z%22 fill=%22%23fff%22/><path d=%22M38 14v10h10%22 fill=%22none%22 stroke=%22%23ef7b5c%22 stroke-width=%224%22/><path d=%22M24 33h17M24 40h13%22 stroke=%22%232eb872%22 stroke-width=%224%22/></svg>" />
     <link rel="stylesheet" href="/static/styles.css" />
     <script src="/static/app.js" defer></script>
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="byobu home">
+      <a class="brand" href="/" aria-label="kogo home">
         <span class="brand-mark" aria-hidden="true">
           <svg viewBox="0 0 32 32"><path d="M7 4h12l6 6v18H7z"/><path d="M19 4v7h7"/><path d="M11 17h10M11 22h7"/></svg>
         </span>
-        <span><b>byobu</b></span>
+        <span><b>kogo</b></span>
       </a>
       <div class="header-note">
         <span class="status-dot"></span>
-        Processed on this device
+        Runs on your kogo instance
       </div>
     </header>
 
@@ -30,13 +30,13 @@
           <p class="eyebrow">FOR RESEARCH &amp; WRITING</p>
           <h1><span class="hero-line">Revision changes,</span><br /><em>at a glance.</em></h1>
           <p class="lead">
-            Accounting for columns, line wrapping, and page breaks, byobu finds added text,
+            Accounting for columns, line wrapping, and page breaks, kogo finds added text,
             deleted text, and figure or equation changes on every page.
           </p>
           <div class="legend hero-legend" aria-label="Diff color legend">
             <span><i class="swatch added"></i>Added</span>
             <span><i class="swatch deleted"></i>Deleted</span>
-            <span><i class="swatch visual"></i>Figures &amp; annotations</span>
+            <span><i class="swatch visual"></i>Figures &amp; layout</span>
             <span><i class="swatch style"></i>Style</span>
           </div>
         </div>
@@ -120,7 +120,7 @@
           </button>
           <p class="privacy-note">
             <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 9V6a5 5 0 0110 0v3M3 9h14v9H3z"/></svg>
-            PDFs are processed only inside this container, and comparison results are deleted automatically after 24 hours.
+            Your PDFs are processed only on this kogo instance and never sent to third-party services. Results are deleted automatically after a configurable retention period (default: 24 hours).
           </p>
         </form>
       </section>
@@ -206,10 +206,10 @@
     </main>
 
     <footer>
-      <span>byobu</span>
+      <span>kogo</span>
       <span>Paper revisions, made visible.</span>
       <span class="footer-links">
-        <a class="footer-link" href="https://github.com/ta-061/byobu" target="_blank" rel="noopener">Source code</a>
+        <a class="footer-link" href="https://github.com/ta-061/kogo" target="_blank" rel="noopener">Source code</a>
         <span class="footer-license">AGPL-3.0</span>
       </span>
     </footer>

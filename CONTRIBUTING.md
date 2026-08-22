@@ -1,4 +1,4 @@
-# Contributing to byobu
+# Contributing to kogo
 
 ## Setup
 

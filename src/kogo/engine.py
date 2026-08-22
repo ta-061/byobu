@@ -1,4 +1,4 @@
-# byobu - layout-aware PDF diff for revisions.
+# kogo - layout-aware PDF diff for revisions.
 # Copyright (C) 2026  ta-061
 #
 # This program is free software: you can redistribute it and/or modify
@@ -42,7 +42,7 @@ import numpy as np
 
 __all__ = ["compare_pdfs", "ComparisonError"]
 
-MARKER_AUTHOR = "byobu"
+MARKER_AUTHOR = "kogo"
 
 ADD_COLOR = (0.10, 0.72, 0.34)
 DELETE_COLOR = (0.91, 0.25, 0.22)
@@ -104,7 +104,7 @@ def _is_cjk(character: str) -> bool:
         or 0xF900 <= codepoint <= 0xFAFF  # CJK Compatibility Ideographs
         or 0xAC00 <= codepoint <= 0xD7AF  # Hangul syllables
         or 0xFF65 <= codepoint <= 0xFF9F  # Halfwidth Katakana
-        or 0x20000 <= codepoint <= 0x323AF  # CJK Extensions B-H / supplements
+        or 0x20000 <= codepoint <= 0x3347F  # CJK Extensions B-J and supplements
     )
 
 
@@ -752,7 +752,7 @@ def _annotation_snapshots(page: fitz.Page) -> list[AnnotationSnapshot]:
     snapshots: list[AnnotationSnapshot] = []
     for annotation in page.annots() or []:
         info = annotation.info or {}
-        if info.get("title") in {MARKER_AUTHOR, "PDF Diff Lab"}:
+        if info.get("title") in {MARKER_AUTHOR, "byobu", "PDF Diff Lab"}:
             # Derived markers should not multiply when an exported result is
             # compared again.
             continue
@@ -1120,7 +1120,7 @@ def _comparison_pdf(
     if report.page_count:
         report.set_metadata(
             {
-                "title": "byobu - Side-by-side comparison",
+                "title": "kogo - Side-by-side comparison",
                 "creator": MARKER_AUTHOR,
             }
         )

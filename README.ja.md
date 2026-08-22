@@ -1,14 +1,14 @@
-# byobu
+# kogo
 
-byobu は、更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈をブラウザとマーカー入りPDFの両方でハイライトする、レイアウトを考慮したPDF差分ツールです。
+kogo は、更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈をブラウザとマーカー入りPDFの両方でハイライトする、レイアウトを考慮したPDF差分ツールです。
 
-名前は「屏風」に由来します。屏風は左右2面(あるいは複数面)を並べて立てる調度品で、本ツールの左右比較(side-by-side)ビューのイメージと重なります。
+kogo(校合)は、改訂版を原本と照合するという意味の、日本の出版用語に由来する名前です。
 
-![byobu results](docs/screenshot-results.png)
+![kogo results](docs/screenshot-results.png)
 
 ## 主な機能
 
-- 欧文は単語単位、日中韓(CJK)は文字単位で精度の高いテキスト差分を検出
+- 欧文は単語単位、日中韓(CJK)は文字単位で精度の高いテキスト差分を検出(CJK拡張漢字 B〜J領域のまれな漢字を含む)
 - ページ内の空白領域からレイアウトを分析して読み順を再構築するため、段組みやスライドのテキストボックスも正しく比較(単純な抽出順の混在を避ける)
 - テキストと視覚的なページ特徴の両方を使った類似度ベースのページ対応付けにより、ページの挿入・削除があっても対応がずれない
 - 図・数式・レイアウトの視覚差分を検出。テキスト領域はマスクして除外し、画像だけのページではスキャンや書き出しによる微小なズレを補正
@@ -24,19 +24,19 @@ byobu は、更新前と更新後のPDFを比較し、追加・削除された�
 ### CLIのみ
 
 ```bash
-pip install byobu
-byobu diff old.pdf new.pdf -o out/
+pip install kogo
+kogo diff old.pdf new.pdf -o out/
 ```
 
 ### Webアプリ
 
 ```bash
-pip install "byobu[serve]"
-byobu fetch-viewer
-byobu serve
+pip install "kogo[serve]"
+kogo fetch-viewer
+kogo serve
 ```
 
-`byobu fetch-viewer` は、Webプレビューで使うPDF.jsビューアの資産をローカルにダウンロードします([設定](#設定)を参照)。Dockerイメージにはあらかじめ同梱されているため、この手順は不要です。
+`kogo fetch-viewer` は、Webプレビューで使うPDF.jsビューアの資産をローカルにダウンロードします([設定](#設定)を参照)。Dockerイメージにはあらかじめ同梱されているため、この手順は不要です。
 
 ブラウザで <http://127.0.0.1:8080> を開きます。
 
@@ -49,14 +49,14 @@ docker compose up -d --build
 ブラウザで <http://localhost:8080> を開きます。初期設定ではコンテナは `127.0.0.1`(ローカルホスト)にのみバインドされます。LAN上で共有したい場合、認証機能は組み込まれていないため、信頼できるネットワーク内でのみ以下のようにしてください。
 
 ```bash
-BYOBU_HOST=0.0.0.0 docker compose up -d --build
+KOGO_HOST=0.0.0.0 docker compose up -d --build
 ```
 
 ## CLIの使い方
 
 ```bash
-byobu diff OLD.pdf NEW.pdf \
-  -o byobu-diff \
+kogo diff OLD.pdf NEW.pdf \
+  -o kogo-diff \
   --dpi 144 \
   --sensitivity standard \
   --max-pages 200
@@ -64,17 +64,17 @@ byobu diff OLD.pdf NEW.pdf \
 
 オプション:
 
-- `-o, --out` — 出力先ディレクトリ(初期値 `byobu-diff`)
+- `-o, --out` — 出力先ディレクトリ(初期値 `kogo-diff`)
 - `--dpi` — 視覚差分の解析解像度、96〜180(初期値 144)
 - `--sensitivity` — `high` / `standard` / `low`(初期値 `standard`)
 - `--max-pages` — PDF 1ファイルあたりの最大ページ数(初期値 200)
 - `--no-previews` — ページプレビュー画像の生成を省略
 - `--json` — 結果をJSONとして標準出力に出力
 
-`byobu serve` でWebアプリを起動します。
+`kogo serve` でWebアプリを起動します。
 
 ```bash
-byobu serve --host 127.0.0.1 --port 8080
+kogo serve --host 127.0.0.1 --port 8080
 ```
 
 ## 設定
@@ -83,12 +83,12 @@ Webアプリは以下の環境変数を読み込みます。
 
 | 変数 | 初期値 | 内容 |
 |---|---:|---|
-| `JOBS_DIR` | `~/.local/share/byobu/jobs` | アップロードファイルと比較結果の保存先 |
+| `JOBS_DIR` | `~/.local/share/kogo/jobs` | アップロードファイルと比較結果の保存先 |
 | `MAX_UPLOAD_MB` | 100 | アップロードするPDF 1ファイルの最大サイズ |
 | `MAX_PAGES` | 200 | PDF 1ファイルあたりの最大ページ数 |
-| `JOB_TTL_HOURS` | 24 | 比較結果を保持する時間 |
+| `JOB_TTL_HOURS` | 24 | 比較結果を保持する時間(初期値。変更可能) |
 | `MAX_CONCURRENT_JOBS` | 2 | 同時に処理する比較件数 |
-| `BYOBU_VENDOR_DIR` | `~/.local/share/byobu/vendor/pdfjs` | `byobu fetch-viewer` がローカルPDF.jsビューア資産をインストールする場所(サーバもここを参照します) |
+| `KOGO_VENDOR_DIR` | `~/.local/share/kogo/vendor/pdfjs` | `kogo fetch-viewer` がローカルPDF.jsビューア資産をインストールする場所(サーバもここを参照します) |
 
 ## 仕組み
 
@@ -101,7 +101,7 @@ Webアプリは以下の環境変数を読み込みます。
 - 文字情報を持たないスキャンのみのPDFは視覚的な比較のみとなります。単語単位の文字差分が必要な場合は、事前にOCRで文字情報を付与してください
 - パスワード保護されたPDFには対応していません
 - 複雑な表や縦書きレイアウトは、自動差分に加えて目視確認が必要な場合があります
-- 認証機能は組み込まれていません。`byobu serve` および初期設定のDocker Composeはローカルホストにのみバインドされます。ローカル環境や信頼できるLANの外へ公開する場合は、認証付きのリバースプロキシの背後に配置してください
+- 認証機能は組み込まれていません。`kogo serve` および初期設定のDocker Composeはローカルホストにのみバインドされます。ローカル環境や信頼できるLANの外へ公開する場合は、認証付きのリバースプロキシの背後に配置してください
 
 ## 開発
 
@@ -111,13 +111,13 @@ python -m unittest discover -s tests -v
 
 ## ライセンス
 
-byobu は AGPL-3.0 で公開しています。詳細は [LICENSE](LICENSE) を参照してください。
+kogo は AGPL-3.0 で公開しています。詳細は [LICENSE](LICENSE) を参照してください。
 
 Copyright (C) 2026 ta-061. Released under the GNU Affero General Public License v3.0 (AGPL-3.0-only).
 
-PyMuPDF(および内部で使われるMuPDF)は AGPL-3.0 または商用ライセンスのデュアルライセンスで配布されています。byobu を再配布したり、ネットワークサービスとして提供する場合は、事前にライセンス条件を確認してください。
+PyMuPDF(および内部で使われるMuPDF)は AGPL-3.0 または商用ライセンスのデュアルライセンスで配布されています。kogo を再配布したり、ネットワークサービスとして提供する場合は、事前にライセンス条件を確認してください。
 
-byobu を改変してネットワーク経由で他者に利用させる場合(例:改変版のWebアプリを自前でホストする場合)、AGPL-3.0 第13条により、利用者に対応するソースコードを提供する必要があります。Webアプリのフッターにある「Source code」リンクは、セルフホストする方が自分のソースコードへのリンクを設置すべき場所です。
+kogo を改変してネットワーク経由で他者に利用させる場合(例:改変版のWebアプリを自前でホストする場合)、AGPL-3.0 第13条により、利用者に対応するソースコードを提供する必要があります。Webアプリのフッターにある「Source code」リンクは、セルフホストする方が自分のソースコードへのリンクを設置すべき場所です。
 
 クレジット:
 

@@ -1,6 +1,6 @@
 const VENDOR_BASE = "/static/vendor/pdfjs";
 const MISSING_VIEWER_MESSAGE =
-  'PDF.js viewer assets are not installed. Run "byobu fetch-viewer" in the terminal (pip installs), or use the Docker image which bundles them.';
+  'PDF.js viewer assets are not installed. Run "kogo fetch-viewer" in the terminal (pip installs), or use the Docker image which bundles them.';
 
 const params = new URLSearchParams(window.location.search);
 const requestedFile = params.get("file") || "";

@@ -22,5 +22,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - run: docker build -t byobu:ci .
-      - run: docker run --rm byobu:ci byobu --version
+      - run: docker build -t kogo:ci .
+      - run: docker run --rm kogo:ci kogo --version
