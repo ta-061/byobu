@@ -14,6 +14,11 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Backstop against a single crafted PDF exhausting host resources in the
+    # native PyMuPDF/OpenCV parsers; raise if legitimate jobs get OOM-killed.
+    mem_limit: 2g
+    cpus: 2
+    pids_limit: 256
 
 volumes:
   kogo-data:

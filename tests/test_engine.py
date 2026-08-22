@@ -535,6 +535,76 @@ class DiffEngineTests(unittest.TestCase):
 
             self.assertEqual(result["summary"]["style_changes"], 0)
 
+    def test_oversized_page_render_is_pixel_budget_clamped(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            old_path = root / "old.pdf"
+            new_path = root / "new.pdf"
+            for path in (old_path, new_path):
+                document = fitz.open()
+                huge_page = document.new_page(width=14400, height=14400)
+                huge_page.insert_text((100, 100), "Huge page", fontsize=48, fontname="helv")
+                small_page = document.new_page(width=200, height=200)
+                small_page.insert_text((20, 20), "Small page", fontsize=12, fontname="helv")
+                document.save(path)
+                document.close()
+
+            result = compare_pdfs(
+                old_path,
+                new_path,
+                root / "result",
+                old_name="old.pdf",
+                new_name="new.pdf",
+                dpi=180,
+                previews=False,
+            )
+
+            self.assertEqual(result["summary"]["changed_pages"], 0)
+
+    def test_openaction_javascript_and_launch_link_are_scrubbed(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            old_path = root / "old.pdf"
+            new_path = root / "new.pdf"
+            for path in (old_path, new_path):
+                document = fitz.open()
+                page = document.new_page(width=200, height=200)
+                page.insert_text((20, 20), "Hello world", fontsize=12)
+                page.insert_link(
+                    {"kind": fitz.LINK_LAUNCH, "file": "calc.exe", "from": fitz.Rect(0, 0, 50, 50)}
+                )
+                catalog_xref = document.pdf_catalog()
+                js_xref = document.get_new_xref()
+                document.update_object(
+                    js_xref, "<< /Type /Action /S /JavaScript /JS (app.alert(1)) >>"
+                )
+                document.xref_set_key(catalog_xref, "OpenAction", f"{js_xref} 0 R")
+                document.save(path)
+                document.close()
+
+            result = compare_pdfs(
+                old_path,
+                new_path,
+                root / "result",
+                old_name="old.pdf",
+                new_name="new.pdf",
+                dpi=96,
+            )
+
+            for artifact in ("old", "new"):
+                output_path = root / "result" / result["artifacts"][artifact]["name"]
+                output_bytes = output_path.read_bytes()
+                self.assertNotIn(b"app.alert", output_bytes)
+                self.assertNotIn(b"calc.exe", output_bytes)
+
+                reopened = fitz.open(output_path)
+                try:
+                    for page in reopened:
+                        for link in page.links():
+                            self.assertIn(link.get("kind"), (fitz.LINK_GOTO, fitz.LINK_URI))
+                finally:
+                    reopened.close()
+
     def test_library_api_with_default_names(self) -> None:
         import kogo
 

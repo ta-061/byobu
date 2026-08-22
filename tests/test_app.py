@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import tempfile
@@ -25,7 +26,7 @@ os.environ["JOBS_DIR"] = _JOBS_DIR
 
 from fastapi.testclient import TestClient  # noqa: E402
 
-from kogo.server.app import app  # noqa: E402
+from kogo.server.app import JOBS_DIR, app  # noqa: E402
 
 
 def tearDownModule() -> None:
@@ -57,9 +58,28 @@ class AppTests(unittest.TestCase):
         response = self.client.get(f"/api/jobs/{job_id}/artifacts/../../etc/passwd")
         self.assertEqual(response.status_code, 404)
 
+    def test_artifact_not_in_allowlist_is_rejected(self) -> None:
+        job_id = "1" * 32
+        job_dir = JOBS_DIR / job_id
+        job_dir.mkdir(parents=True)
+        (job_dir / "result.json").write_text(
+            json.dumps({"artifacts": {}, "rows": []}), encoding="utf-8"
+        )
+        (job_dir / "old-input.pdf").write_bytes(b"%PDF-1.4 not a real artifact")
+
+        response = self.client.get(f"/api/jobs/{job_id}/artifacts/old-input.pdf")
+        self.assertEqual(response.status_code, 404)
+
     def test_unknown_job_is_not_found(self) -> None:
         response = self.client.get("/api/jobs/nonexistent")
         self.assertEqual(response.status_code, 404)
+
+    def test_security_headers_present_on_index(self) -> None:
+        response = self.client.get("/")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.headers.get("x-content-type-options"), "nosniff")
+        self.assertEqual(response.headers.get("referrer-policy"), "no-referrer")
+        self.assertIn("default-src 'self'", response.headers.get("content-security-policy", ""))
 
 
 if __name__ == "__main__":

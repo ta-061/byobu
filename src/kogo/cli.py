@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -34,6 +35,9 @@ from kogo.engine import ComparisonError, compare_pdfs
 # Keep in sync with ARG PDFJS_VERSION in Dockerfile.
 PDFJS_VERSION = "6.2.108"
 PDFJS_TARBALL_URL = f"https://registry.npmjs.org/pdfjs-dist/-/pdfjs-dist-{PDFJS_VERSION}.tgz"
+# SHA-256 of the tarball above (`curl -sL <url> | sha256sum`). Must be updated
+# together with PDFJS_VERSION whenever the pinned version changes.
+PDFJS_TARBALL_SHA256 = "b3e68d5cda70551a90b3f771419d379e20fc788ce056fa32de73608e01df47f4"
 VENDOR_COMPLETE_MARKER = ".complete"
 
 # (source within the tarball's "package/" prefix, destination relative to the vendor dir)
@@ -143,13 +147,37 @@ def _run_diff(args: argparse.Namespace) -> int:
     return 0
 
 
+def _sha256_of(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _reject_unsafe_member_name(name: str) -> None:
+    if not name or name.startswith("/") or name.startswith("\\"):
+        raise ValueError(f"Refusing to extract tar member with an unsafe path: {name!r}")
+    if ".." in Path(name).parts:
+        raise ValueError(f"Refusing to extract tar member with an unsafe path: {name!r}")
+
+
+def _safe_join(destination: Path, destination_root: Path, *relative_parts: str) -> Path:
+    out_path = destination.joinpath(*relative_parts)
+    if not out_path.resolve().is_relative_to(destination_root):
+        raise ValueError(f"Refusing to extract outside the destination directory: {out_path}")
+    return out_path
+
+
 def _extract_pdfjs(tarball_path: Path, destination: Path) -> None:
+    destination_root = destination.resolve()
     with tarfile.open(tarball_path, mode="r:gz") as archive:
         for source, target in PDFJS_FILE_MAP:
             member = archive.getmember(f"package/{source}")
+            _reject_unsafe_member_name(member.name)
+            out_path = _safe_join(destination, destination_root, target)
             with archive.extractfile(member) as handle:
                 data = handle.read()
-            out_path = destination / target
             out_path.parent.mkdir(parents=True, exist_ok=True)
             out_path.write_bytes(data)
         for source, target in PDFJS_DIR_MAP:
@@ -157,8 +185,9 @@ def _extract_pdfjs(tarball_path: Path, destination: Path) -> None:
             for member in archive.getmembers():
                 if not member.name.startswith(prefix) or not member.isfile():
                     continue
+                _reject_unsafe_member_name(member.name)
                 relative = member.name[len(prefix) :]
-                out_path = destination / target / relative
+                out_path = _safe_join(destination, destination_root, target, relative)
                 out_path.parent.mkdir(parents=True, exist_ok=True)
                 with archive.extractfile(member) as handle:
                     out_path.write_bytes(handle.read())
@@ -183,10 +212,19 @@ def _run_fetch_viewer(args: argparse.Namespace) -> int:
             print(f"Could not download the PDF.js viewer assets: {exc}", file=sys.stderr)
             return 1
 
+        actual_sha256 = _sha256_of(tarball_path)
+        if actual_sha256 != PDFJS_TARBALL_SHA256:
+            print(
+                "Downloaded PDF.js tarball does not match the pinned SHA-256 checksum "
+                f"(expected {PDFJS_TARBALL_SHA256}, got {actual_sha256}); aborting.",
+                file=sys.stderr,
+            )
+            return 1
+
         staging_dir = work_dir / "staging"
         try:
             _extract_pdfjs(tarball_path, staging_dir)
-        except (tarfile.TarError, KeyError, OSError) as exc:
+        except (tarfile.TarError, KeyError, OSError, ValueError) as exc:
             print(f"Could not extract the PDF.js viewer assets: {exc}", file=sys.stderr)
             return 1
 
@@ -215,9 +253,10 @@ def _run_serve(args: argparse.Namespace) -> int:
     if args.jobs_dir is not None:
         os.environ["JOBS_DIR"] = args.jobs_dir
 
+    source_url = os.environ.get("KOGO_SOURCE_URL", "https://github.com/ta-061/kogo")
     print(f"kogo {__version__}  Copyright (C) 2026 ta-061")
     print("License: AGPL-3.0-only <https://www.gnu.org/licenses/agpl-3.0.html>")
-    print("Source code: https://github.com/ta-061/kogo")
+    print(f"Source code: {source_url}")
     print("This is free software: you are free to change and redistribute it under the terms of the AGPL.")
     uvicorn.run("kogo.server.app:app", host=args.host, port=args.port)
     return 0

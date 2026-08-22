@@ -50,6 +50,46 @@ VISUAL_COLOR = (0.49, 0.28, 0.88)
 PAGE_COLOR = (0.96, 0.64, 0.10)
 STYLE_COLOR = (0.95, 0.63, 0.08)
 
+# Ceiling on rendered pixel area (width_px * height_px) for a single page.
+# The PDF spec allows page boxes up to 14,400pt/side; without this, such a
+# page rendered at the max supported DPI would allocate multi-gigabyte RGB
+# buffers. Mirrors the fixed-thumbnail approach already used for signatures.
+MAX_RENDER_PIXELS = 40_000_000
+
+# Link kinds PyMuPDF exposes as safe to keep on baked output pages. Anything
+# else (Launch, GoToR, and actions such as SubmitForm/ImportData/JavaScript,
+# which PyMuPDF folds into LINK_NAMED/LINK_NONE) is active content and is
+# dropped by _scrub_active_content.
+_SAFE_LINK_KINDS = frozenset((fitz.LINK_GOTO, fitz.LINK_URI))
+
+
+def _scrub_active_content(doc: fitz.Document) -> None:
+    """Strip JavaScript, embedded/attached files, and dangerous link actions.
+
+    Must run immediately after opening an untrusted document, before any
+    other processing, so that malicious active content (e.g. an /OpenAction
+    or a Launch/GoToR link) never survives into the baked, re-shared output
+    PDFs.
+    """
+    doc.scrub(
+        attached_files=True,
+        clean_pages=False,
+        embedded_files=True,
+        hidden_text=False,
+        javascript=True,
+        metadata=False,
+        redactions=False,
+        redact_images=False,
+        remove_links=False,
+        reset_fields=True,
+        reset_responses=True,
+        thumbnails=True,
+    )
+    for page in doc:
+        for link in list(page.links()):
+            if link.get("kind") not in _SAFE_LINK_KINDS:
+                page.delete_link(link)
+
 
 class ComparisonError(ValueError):
     """A user-facing PDF comparison error."""
@@ -643,14 +683,6 @@ def _difference_snippets(words: Sequence[Word], limit: int = 6) -> list[str]:
     return [_snippet(chunk) for chunk in chunks[:limit]]
 
 
-def _text_differences(
-    old_words: Sequence[Word], new_words: Sequence[Word]
-) -> tuple[list[Word], list[Word], list[str], list[str]]:
-    """Compatibility helper for focused page-level comparisons and tests."""
-    deleted, added = _changed_words(old_words, new_words)
-    return deleted, added, _difference_snippets(deleted), _difference_snippets(added)
-
-
 def _is_single_cjk_word(word: Word) -> bool:
     return len(word.normalized) == 1 and _is_cjk(word.normalized)
 
@@ -869,8 +901,18 @@ def _add_page_box(page: fitz.Page, color: tuple[float, float, float], content: s
     annotation.update()
 
 
-def _render_page(page: fitz.Page, dpi: int, *, annotations: bool = False) -> np.ndarray:
+def _clamped_render_scale(rect: fitz.Rect, dpi: int) -> float:
+    """Scale factor for `dpi`, reduced so the rendered pixel area stays under
+    MAX_RENDER_PIXELS (same pattern as `_page_visual_signature`'s fixed thumbnail)."""
     scale = dpi / 72.0
+    area = (rect.width * scale) * (rect.height * scale)
+    if area > MAX_RENDER_PIXELS:
+        scale *= math.sqrt(MAX_RENDER_PIXELS / max(area, 1.0))
+    return scale
+
+
+def _render_page(page: fitz.Page, dpi: int, *, annotations: bool = False) -> np.ndarray:
+    scale = _clamped_render_scale(page.rect, dpi)
     pixmap = page.get_pixmap(
         matrix=fitz.Matrix(scale, scale),
         colorspace=fitz.csRGB,
@@ -1056,7 +1098,7 @@ def _visual_differences(
 
 
 def _preview_page(page: fitz.Page, destination: Path, dpi: int = 112) -> None:
-    scale = dpi / 72.0
+    scale = _clamped_render_scale(page.rect, dpi)
     pixmap = page.get_pixmap(
         matrix=fitz.Matrix(scale, scale),
         colorspace=fitz.csRGB,
@@ -1225,6 +1267,9 @@ def compare_pdfs(
             raise ComparisonError("Cannot compare a PDF that contains no pages.")
         if old_doc.page_count > max_pages or new_doc.page_count > max_pages:
             raise ComparisonError(f"Up to {max_pages} pages per file can be compared.")
+
+        for doc in (old_doc, new_doc):
+            _scrub_active_content(doc)
 
         old_words_by_page = [_page_words(page) for page in old_doc]
         new_words_by_page = [_page_words(page) for page in new_doc]

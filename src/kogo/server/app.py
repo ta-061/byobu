@@ -27,9 +27,9 @@ from contextlib import asynccontextmanager, suppress
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import FastAPI, File, Form, HTTPException, Query, UploadFile
+from fastapi import FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from kogo import __version__
@@ -42,6 +42,18 @@ MAX_UPLOAD_BYTES = int(os.getenv("MAX_UPLOAD_MB", "100")) * 1024 * 1024
 MAX_PAGES = int(os.getenv("MAX_PAGES", "200"))
 JOB_TTL_SECONDS = max(3600, int(os.getenv("JOB_TTL_HOURS", "24")) * 3600)
 MAX_CONCURRENT_JOBS = max(1, int(os.getenv("MAX_CONCURRENT_JOBS", "2")))
+# Wall-clock ceiling for a single comparison. Only abandons the threadpool
+# task on expiry (CPython cannot force-kill a thread running native
+# PyMuPDF/OpenCV code) - a real terminate() would need a process-pool
+# executor instead; tracked in ROADMAP.md.
+JOB_TIMEOUT_SECONDS = max(60, int(os.getenv("JOB_TIMEOUT_SECONDS", "900")))
+# Rejected before Starlette buffers the request body (see _limit_body_size).
+# Only effective when the client sends Content-Length; chunked/absent-length
+# requests fall back to _save_pdf's streaming size check. Operators exposing
+# kogo beyond localhost should also set a body-size limit at their reverse
+# proxy (e.g. nginx `client_max_body_size`) for defense in depth.
+MAX_REQUEST_BYTES = 2 * MAX_UPLOAD_BYTES + 16 * 1024 * 1024
+KOGO_SOURCE_URL = os.getenv("KOGO_SOURCE_URL", "https://github.com/ta-061/kogo")
 JOB_ID_PATTERN = re.compile(r"^[0-9a-f]{32}$")
 
 JOBS_DIR.mkdir(parents=True, exist_ok=True)
@@ -112,6 +124,49 @@ if not (_PACKAGE_VENDOR_DIR / "build" / "pdf.mjs").is_file() and (
     )
 app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 
+_INDEX_HTML = (
+    (APP_DIR / "templates" / "index.html")
+    .read_text(encoding="utf-8")
+    .replace("%KOGO_SOURCE_URL%", KOGO_SOURCE_URL)
+)
+
+
+@app.middleware("http")
+async def _security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Content-Security-Policy"] = (
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' blob: data:; frame-src 'self'; worker-src 'self' blob:; "
+        "connect-src 'self'"
+    )
+    return response
+
+
+@app.middleware("http")
+async def _limit_body_size(request: Request, call_next):
+    content_length = request.headers.get("content-length")
+    if content_length is not None:
+        try:
+            declared_size = int(content_length)
+        except ValueError:
+            declared_size = None
+        if declared_size is not None and declared_size > MAX_REQUEST_BYTES:
+            return JSONResponse(
+                {
+                    "detail": (
+                        f"Request body too large; must be at most "
+                        f"{MAX_REQUEST_BYTES // 1024 // 1024} MB."
+                    )
+                },
+                status_code=413,
+            )
+    # If Content-Length is absent (e.g. chunked transfer), we cannot reject
+    # before Starlette buffers the body; _save_pdf's streaming size check is
+    # the remaining backstop for that case.
+    return await call_next(request)
+
 
 async def _save_pdf(upload: UploadFile, destination: Path) -> int:
     if not upload.filename:
@@ -172,8 +227,8 @@ def _allowed_artifacts(result: dict) -> set[str]:
 
 
 @app.get("/", include_in_schema=False)
-async def index() -> FileResponse:
-    return FileResponse(APP_DIR / "templates" / "index.html")
+async def index() -> HTMLResponse:
+    return HTMLResponse(_INDEX_HTML)
 
 
 @app.get("/viewer", include_in_schema=False)
@@ -204,7 +259,6 @@ async def compare(
     await run_in_threadpool(_cleanup_expired_jobs)
     job_id = uuid.uuid4().hex
     job_dir = JOBS_DIR / job_id
-    job_dir.mkdir(mode=0o700, parents=True)
     old_path = job_dir / "old-input.pdf"
     new_path = job_dir / "new-input.pdf"
     old_name = Path(old_pdf.filename or "old.pdf").name[:180]
@@ -212,19 +266,31 @@ async def compare(
 
     try:
         async with comparison_slots:
+            job_dir.mkdir(mode=0o700, parents=True)
             await _save_pdf(old_pdf, old_path)
             await _save_pdf(new_pdf, new_path)
-            result = await run_in_threadpool(
-                compare_pdfs,
-                old_path,
-                new_path,
-                job_dir,
-                old_name=old_name,
-                new_name=new_name,
-                dpi=dpi,
-                sensitivity=sensitivity,
-                max_pages=MAX_PAGES,
-            )
+            try:
+                result = await asyncio.wait_for(
+                    run_in_threadpool(
+                        compare_pdfs,
+                        old_path,
+                        new_path,
+                        job_dir,
+                        old_name=old_name,
+                        new_name=new_name,
+                        dpi=dpi,
+                        sensitivity=sensitivity,
+                        max_pages=MAX_PAGES,
+                    ),
+                    timeout=JOB_TIMEOUT_SECONDS,
+                )
+            except asyncio.TimeoutError as exc:
+                # Only abandons the threadpool task: CPython cannot force-kill
+                # a thread running native PyMuPDF/OpenCV code. The `async with`
+                # block still releases the semaphore on the way out.
+                raise ComparisonError(
+                    "Comparison timed out. Try a smaller file, fewer pages, or a lower DPI."
+                ) from exc
         # Inputs are unnecessary after generated artifacts are complete.
         old_path.unlink(missing_ok=True)
         new_path.unlink(missing_ok=True)

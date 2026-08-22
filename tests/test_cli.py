@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import tarfile
 import tempfile
 import unittest
 from pathlib import Path
@@ -76,6 +77,25 @@ class CliTests(unittest.TestCase):
                 )
 
             self.assertEqual(exit_code, 1)
+
+    def test_extract_pdfjs_rejects_path_traversal_member(self) -> None:
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            tarball_path = root / "pdfjs-dist.tgz"
+            with tarfile.open(tarball_path, mode="w:gz") as archive:
+                def add_member(name: str, data: bytes = b"x") -> None:
+                    info = tarfile.TarInfo(name=name)
+                    info.size = len(data)
+                    archive.addfile(info, io.BytesIO(data))
+
+                for source, _ in cli.PDFJS_FILE_MAP:
+                    add_member(f"package/{source}")
+                add_member("package/cmaps/../../evil.txt", b"malicious")
+
+            destination = root / "staging"
+            with self.assertRaises(ValueError):
+                cli._extract_pdfjs(tarball_path, destination)
+            self.assertFalse((root / "evil.txt").exists())
 
 
 if __name__ == "__main__":

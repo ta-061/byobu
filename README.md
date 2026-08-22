@@ -54,6 +54,8 @@ Then open <http://localhost:8080>. By default the container only binds to `127.0
 KOGO_HOST=0.0.0.0 docker compose up -d --build
 ```
 
+`docker-compose.yml` sets `mem_limit: 2g`, `cpus: 2`, and `pids_limit: 256` as a backstop, since PyMuPDF and OpenCV are native-code parsers processing untrusted PDFs. Raise these if legitimate large comparisons get OOM-killed or throttled. Equivalent `docker run` flags: `--memory=2g --cpus=2 --pids-limit=256`.
+
 ## CLI usage
 
 ```bash
@@ -105,7 +107,9 @@ The web app reads these environment variables:
 | `MAX_PAGES` | 200 | Maximum pages per PDF |
 | `JOB_TTL_HOURS` | 24 | How long comparison results are kept before cleanup |
 | `MAX_CONCURRENT_JOBS` | 2 | Number of comparisons processed at once |
+| `JOB_TIMEOUT_SECONDS` | 900 | Wall-clock limit for a single comparison before it's aborted (minimum 60) |
 | `KOGO_VENDOR_DIR` | `~/.local/share/kogo/vendor/pdfjs` | Where `kogo fetch-viewer` installs (and the server looks for) the local PDF.js viewer assets |
+| `KOGO_SOURCE_URL` | `https://github.com/ta-061/kogo` | Source code link shown in the web app footer and the `kogo serve` startup banner — see [License](#license) |
 
 ## How it works
 
@@ -119,6 +123,7 @@ Figures, equations, and other non-text layout are compared by rendering each pag
 - Password-protected PDFs are not supported
 - Complex tables and vertical text layouts may need a visual check in addition to the automated diff
 - There is no authentication built in. `kogo serve` and the default Docker Compose setup only bind to localhost; put the web app behind a reverse proxy with authentication before exposing it to anything beyond your local machine or trusted LAN
+- `MAX_UPLOAD_MB` is enforced while reading each upload, but a client that sends a large body without a `Content-Length` header (chunked transfer) is only caught by that same streaming check, not rejected up front; a reverse proxy in front of kogo should also set its own body-size limit (e.g. nginx `client_max_body_size`) for defense in depth
 
 ## Development
 
@@ -134,7 +139,7 @@ Copyright (C) 2026 ta-061. Released under the GNU Affero General Public License 
 
 PyMuPDF (and the underlying MuPDF library) is distributed under AGPL-3.0-or-commercial; check its license terms before redistributing kogo or offering it as a network service.
 
-If you modify kogo and let others use it over a network (for example, by self-hosting a modified version of the web app), AGPL-3.0 §13 requires you to offer those users the corresponding source code. The "Source code" link in the web app's footer is where self-hosters should point to their source.
+If you modify kogo and let others use it over a network (for example, by self-hosting a modified version of the web app), AGPL-3.0 §13 requires you to offer those users the corresponding source code. The "Source code" link in the web app's footer and the `kogo serve` startup banner both read from the `KOGO_SOURCE_URL` environment variable (default: this repository) — operators running a modified build **must** set it to their own fork's repository to satisfy §13.
 
 Credits:
 

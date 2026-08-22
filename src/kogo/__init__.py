@@ -26,6 +26,6 @@ Library usage:
 
 from kogo.engine import ComparisonError, compare_pdfs
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __all__ = ["ComparisonError", "compare_pdfs", "__version__"]
