@@ -535,6 +535,20 @@ class DiffEngineTests(unittest.TestCase):
 
             self.assertEqual(result["summary"]["style_changes"], 0)
 
+    def test_library_api_with_default_names(self) -> None:
+        import kogo
+
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_pdf(root / "before.pdf", [("The library API sentence stays here.", "square")])
+            make_pdf(root / "after.pdf", [("The library API sentence stays here.", "circle")])
+
+            result = kogo.compare_pdfs(root / "before.pdf", root / "after.pdf", root / "out", dpi=96)
+
+            self.assertEqual(result["files"]["old"]["name"], "before.pdf")
+            self.assertEqual(result["files"]["new"]["name"], "after.pdf")
+            self.assertGreater(result["summary"]["visual_regions"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

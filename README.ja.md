@@ -77,6 +77,21 @@ kogo diff OLD.pdf NEW.pdf \
 kogo serve --host 127.0.0.1 --port 8080
 ```
 
+## ライブラリとして使う
+
+差分エンジンは通常のPython APIです。`pip install kogo` だけで使えます(Web依存は不要)。
+
+```python
+import kogo
+
+result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+print(result["summary"])
+# out/ に old-highlighted.pdf、new-highlighted.pdf、
+# side-by-side.pdf、result.json、ページプレビューが生成されます。
+```
+
+`kogo.compare_pdfs` は、暗号化・空・ページ数超過・読み込み不能などの場合に `kogo.ComparisonError` を送出します。キーワード引数はCLIと同じです(`dpi`、`sensitivity`、`max_pages`、`previews`、`old_name`、`new_name`)。
+
 ## 設定
 
 Webアプリは以下の環境変数を読み込みます。

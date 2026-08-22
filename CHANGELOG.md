@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 - 2026-08-22 - Library API
+
+- Export `compare_pdfs` and `ComparisonError` from the top-level `kogo` package so `import kogo` is enough to use the diff engine as a library
+- `compare_pdfs` `old_name` / `new_name` are now optional and default to the input file names
+
 ## 0.1.0 - 2026-08-22 - Initial release
 
 Initial release of kogo. The project was formerly prototyped under the name "byobu"; it was renamed before PyPI publication to avoid collision with the existing `byobu` terminal multiplexer.

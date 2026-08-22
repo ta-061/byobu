@@ -13,6 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""kogo: layout-aware PDF diff for revisions."""
+"""kogo: layout-aware PDF diff for revisions.
 
-__version__ = "0.1.0"
+Library usage:
+
+    import kogo
+
+    result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+    # -> old-highlighted.pdf, new-highlighted.pdf, side-by-side.pdf,
+    #    result.json (and previews/) under out/
+"""
+
+from kogo.engine import ComparisonError, compare_pdfs
+
+__version__ = "0.1.1"
+
+__all__ = ["ComparisonError", "compare_pdfs", "__version__"]

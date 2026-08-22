@@ -1141,13 +1141,15 @@ def compare_pdfs(
     new_path: Path,
     output_dir: Path,
     *,
-    old_name: str,
-    new_name: str,
+    old_name: str | None = None,
+    new_name: str | None = None,
     dpi: int = 144,
     sensitivity: str = "standard",
     max_pages: int = 200,
     previews: bool = True,
 ) -> dict[str, Any]:
+    old_name = old_name or Path(old_path).name
+    new_name = new_name or Path(new_path).name
     output_dir.mkdir(parents=True, exist_ok=True)
     preview_dir = output_dir / "previews"
     if previews:

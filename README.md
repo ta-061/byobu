@@ -77,6 +77,21 @@ Options:
 kogo serve --host 127.0.0.1 --port 8080
 ```
 
+## Use as a library
+
+The diff engine is a regular Python API — `pip install kogo` is enough (no web dependencies needed):
+
+```python
+import kogo
+
+result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+print(result["summary"])
+# out/ now contains old-highlighted.pdf, new-highlighted.pdf,
+# side-by-side.pdf, result.json, and page previews.
+```
+
+`kogo.compare_pdfs` raises `kogo.ComparisonError` for user-facing problems (encrypted, empty, oversized, or unreadable PDFs). Keyword options mirror the CLI: `dpi`, `sensitivity`, `max_pages`, `previews`, `old_name`, `new_name`.
+
 ## Configuration
 
 The web app reads these environment variables:
