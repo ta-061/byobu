@@ -6,6 +6,8 @@ kogo (校合) is the Japanese publishing term for checking a revision against th
 
 ![kogo results](docs/screenshot-results.png)
 
+Website: <https://ta-061.github.io/kogo/> (live after the next push to `main`)
+
 ## Features
 
 - Word-level text diff for Latin text, character-level precision for CJK (Chinese, Japanese, Korean) text, including rare kanji across CJK Extensions B-J

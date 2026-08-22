@@ -6,6 +6,8 @@ kogo(校合)は、改訂版を原本と照合するという意味の、日本�
 
 ![kogo results](docs/screenshot-results.png)
 
+プロジェクトサイト: <https://ta-061.github.io/kogo/>(`main` への次回pushで公開されます)
+
 ## 主な機能
 
 - 欧文は単語単位、日中韓(CJK)は文字単位で精度の高いテキスト差分を検出(CJK拡張漢字 B〜J領域のまれな漢字を含む)

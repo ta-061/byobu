@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kogo — レイアウトを考慮したPDF差分ツール</title>
+<meta name="description" content="kogoは更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈をハイライトします。レイアウトを考慮した読み順の再構築とCJK文字単位の高精度な差分検出、すべてローカル処理。オープンソース(AGPL-3.0)。">
+<link rel="canonical" href="https://ta-061.github.io/kogo/ja/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="kogo — レイアウトを考慮したPDF差分ツール">
+<meta property="og:description" content="更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈をブラウザとマーカー入りPDFの両方でハイライトします。">
+<meta property="og:image" content="https://ta-061.github.io/kogo/screenshot-results.png">
+<meta property="og:url" content="https://ta-061.github.io/kogo/ja/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2317211f'/%3E%3Cpath d='M9 6h12l6 6v14H9z' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M21 6v7h7' fill='none' stroke='white' stroke-width='1.8' stroke-linejoin='round' stroke-linecap='round'/%3E%3Cpath d='M13 19h10M13 24h7' fill='none' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="#top">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 32 32"><path d="M7 4h12l6 6v18H7z"/><path d="M19 4v7h7"/><path d="M11 17h10M11 22h7"/></svg>
+    </span>
+    <span><b>kogo</b></span>
+  </a>
+  <div class="header-actions">
+    <nav class="lang-switch" aria-label="Language">
+      <a href="../index.html">EN</a>
+      <a href="index.html" class="active">日本語</a>
+    </nav>
+    <a class="header-link" href="https://github.com/ta-061/kogo">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .26.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+      GitHub
+    </a>
+    <a class="header-link" href="https://pypi.org/project/kogo/">
+      <svg viewBox="0 0 24 24"><path d="M12 3l8 4-8 4-8-4 8-4Z"/><path d="M4 11l8 4 8-4"/><path d="M4 15l8 4 8-4"/></svg>
+      PyPI
+    </a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" style="border-top:0;padding-top:76px">
+    <div class="hero-copy">
+      <p class="eyebrow">レイアウトを考慮したPDF差分ツール</p>
+      <h1>2つのPDFの違いを、<em>正確に</em>把握する。</h1>
+      <p class="kanji-note">kogo(校合)は、改訂版を原本と照合するという意味の、日本の出版用語に由来する名前です。</p>
+      <p class="lead">
+        kogo は、更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈を検出します。
+        ブラウザ上でも、マーカー入りのPDFとしても確認できます。
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#quick-start">
+          <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          クイックスタート
+        </a>
+        <a class="btn btn-secondary" href="https://github.com/ta-061/kogo">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.08 2.91.83.09-.65.35-1.08.63-1.33-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.6 9.6 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.68-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .26.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
+          GitHubで見る
+        </a>
+        <a class="btn btn-secondary" href="https://pypi.org/project/kogo/">
+          <svg viewBox="0 0 24 24"><path d="M12 3l8 4-8 4-8-4 8-4Z"/><path d="M4 11l8 4 8-4"/><path d="M4 15l8 4 8-4"/></svg>
+          PyPIパッケージ
+        </a>
+      </div>
+    </div>
+    <figure class="hero-figure">
+      <img src="../screenshot-results.png" alt="追加・削除・視覚差分・スタイル変更のバッジが付いた、ページ対応済みのkogo比較結果画面" width="1400" height="900" loading="eager">
+      <figcaption>変更バッジとフィルタ、選択可能テキストのPDF.jsプレビューを備えた左右比較結果。</figcaption>
+    </figure>
+  </section>
+
+  <section id="features">
+    <div class="section-head">
+      <p class="eyebrow">主な機能</p>
+      <h2>実際の文書のための差分検出</h2>
+      <p>原稿、スライド、スキャンした書類はそれぞれ扱い方が異なります。kogoは文字単位の差分を取る前に、読み順とページ対応を再構築します。</p>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 4h7v16H4zM13 4h7v7h-7zM13 14h7v6h-7z"/></svg></span>
+        <h3>レイアウトを考慮した読み順</h3>
+        <p>ページ内の空白領域からレイアウトを分析して読み順を再構築するため、段組みやスライドのテキストボックスも正しく比較されます。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h9"/></svg></span>
+        <h3>CJK文字単位の高精度差分</h3>
+        <p>欧文は単語単位、日中韓(CJK)は文字単位で高精度に差分を検出します。CJK拡張漢字B〜J領域のまれな漢字も含みます。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M7 3v18M17 3v18M3 8l4-5 4 5M13 8l4-5 4 5"/></svg></span>
+        <h3>ページ対応付け</h3>
+        <p>テキストと視覚的なページ特徴の両方を使った類似度ベースの配列アラインメントにより、ページの挿入・削除があっても対応がずれません。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M3 5h18v14H3zM3 15l5-5 4 4 4-6 4 4"/></svg></span>
+        <h3>図・レイアウトの視覚差分</h3>
+        <p>図・数式・レイアウトはテキスト領域をマスクして視覚的に比較し、画像だけのページではスキャンや書き出しによる微小なズレも補正します。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v12H8l-4 4z"/></svg></span>
+        <h3>注釈の差分検出</h3>
+        <p>PDFに付いたハイライト・コメント・手書き注釈をフィンガープリント化し、追加・削除を別途検出します。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg></span>
+        <h3>スタイル変更の検出</h3>
+        <p>太字・斜体・文字サイズなど、文字自体は変わっていないスタイルのみの変更を、内容変更とは区別してアンバー色で検出します。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 2 3 7l9 5 9-5-9-5ZM3 12l9 5 9-5M3 17l9 5 9-5"/></svg></span>
+        <h3>焼き込み済みマーカー</h3>
+        <p>マーカーはページ内容へ直接焼き込まれるため、注釈を表示しない・対応していないビューアでも常に見えます。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <h3>文字選択可能なWebプレビュー</h3>
+        <p>Mozilla PDF.jsによるWebプレビューに加え、旧版ハイライトPDF・新版ハイライトPDF・左右比較PDFをダウンロードできます。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.5 8.5 8 9 4.5-.5 8-4 8-9V6l-8-3Z"/></svg></span>
+        <h3>ローカル処理・外部送信なし</h3>
+        <p>すべての処理はローカルで行われ、外部サービスには何も送信されません。アカウント登録もクラウド保存も不要です。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="quick-start">
+    <div class="section-head">
+      <p class="eyebrow">クイックスタート</p>
+      <h2>CLI・Webアプリ・Dockerから選択</h2>
+      <p>基本パッケージはCLIとライブラリのみで、Web関連の依存は含まれません。ブラウザUIが必要な場合は <code>serve</code> エクストラかDockerを使ってください。</p>
+    </div>
+    <div class="quickstart-grid">
+      <div class="qs-card">
+        <h3>CLIのみ</h3>
+        <p>差分エンジンとコマンドラインツールをインストールします。Web関連の依存は不要です。</p>
+        <div class="code-block">
+          <pre><code>pip install kogo
+kogo diff old.pdf new.pdf -o out/</code></pre>
+          <button type="button" class="copy-btn" data-copied-label="コピーしました">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
+            <span class="copy-label">コピー</span>
+          </button>
+        </div>
+      </div>
+      <div class="qs-card">
+        <h3>Webアプリ</h3>
+        <p><code>kogo fetch-viewer</code> は、Webプレビューで使うPDF.jsビューアの資産をローカルにダウンロードします。Dockerイメージにはあらかじめ同梱されているため不要です。</p>
+        <div class="code-block">
+          <pre><code>pip install "kogo[serve]"
+kogo fetch-viewer
+kogo serve</code></pre>
+          <button type="button" class="copy-btn" data-copied-label="コピーしました">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
+            <span class="copy-label">コピー</span>
+          </button>
+        </div>
+        <p style="margin-top:12px">ブラウザで <code>http://127.0.0.1:8080</code> を開きます。</p>
+      </div>
+      <div class="qs-card">
+        <h3>Docker</h3>
+        <p>初期設定ではコンテナは <code>127.0.0.1</code> にのみバインドされます。認証機能は組み込まれていないため、<code>0.0.0.0</code> へのバインドは信頼できるネットワーク内でのみ行ってください。</p>
+        <div class="code-block">
+          <pre><code>docker compose up -d --build</code></pre>
+          <button type="button" class="copy-btn" data-copied-label="コピーしました">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
+            <span class="copy-label">コピー</span>
+          </button>
+        </div>
+        <p style="margin-top:12px">ブラウザで <code>http://localhost:8080</code> を開きます。</p>
+      </div>
+      <div class="qs-card library-example">
+        <h3>ライブラリとして使う</h3>
+        <p>差分エンジンは通常のPython APIです。<code>pip install kogo</code> だけで使えます(Web依存は不要)。</p>
+        <div class="code-block">
+          <pre><code>import kogo
+
+result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+print(result["summary"])
+# out/ に old-highlighted.pdf、new-highlighted.pdf、
+# side-by-side.pdf、result.json、ページプレビューが生成されます。</code></pre>
+          <button type="button" class="copy-btn" data-copied-label="コピーしました">
+            <svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg>
+            <span class="copy-label">コピー</span>
+          </button>
+        </div>
+        <p style="margin-top:12px"><code>kogo.compare_pdfs</code> は、暗号化・空・ページ数超過・読み込み不能などの場合に <code>kogo.ComparisonError</code> を送出します。キーワード引数はCLIと同じです(<code>dpi</code>、<code>sensitivity</code>、<code>max_pages</code>、<code>previews</code>、<code>old_name</code>、<code>new_name</code>)。</p>
+      </div>
+    </div>
+    <p class="qs-note">
+      <code>pip install kogo</code> だけではCLIとライブラリのみが使えます。ブラウザUIには
+      <code>serve</code> エクストラ(<code>pip install "kogo[serve]"</code>)またはDockerイメージが必要です。
+      どちらもFastAPI/UvicornとPDF.jsビューア資産を追加します。
+    </p>
+  </section>
+
+  <section id="license">
+    <div class="section-head">
+      <p class="eyebrow">ライセンス</p>
+      <h2>AGPL-3.0</h2>
+    </div>
+    <div class="license-body">
+      <p>kogo は AGPL-3.0 で公開しています。詳細は <a href="https://github.com/ta-061/kogo/blob/main/LICENSE">LICENSE</a> を参照してください。</p>
+      <p>PyMuPDF(および内部で使われるMuPDF)は AGPL-3.0 または商用ライセンスのデュアルライセンスで配布されています。kogo を再配布したり、ネットワークサービスとして提供する場合は、事前にライセンス条件を確認してください。</p>
+      <p>クレジット:</p>
+      <ul class="credits">
+        <li><a href="https://github.com/mozilla/pdf.js">Mozilla PDF.js</a>(Apache-2.0)</li>
+        <li><a href="https://github.com/pymupdf/PyMuPDF">PyMuPDF</a>(AGPL-3.0 または商用ライセンス)</li>
+        <li><a href="https://github.com/opencv/opencv">OpenCV</a>(Apache-2.0)</li>
+        <li><a href="https://github.com/tiangolo/fastapi">FastAPI</a>(MIT)</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span>Copyright © 2026 ta-061 · AGPL-3.0</span>
+  <div class="footer-links">
+    <a class="footer-link" href="https://github.com/ta-061/kogo">ソースコード</a>
+    <a class="footer-link" href="https://pypi.org/project/kogo/">PyPI</a>
+  </div>
+</footer>
+
+<script src="../site.js"></script>
+</body>
+</html>
