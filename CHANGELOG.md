@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5 - 2026-08-23 - Maintainability & supply-chain hardening
+
+- Internal: split engine.py into the kogo.engine package (words/alignment/text_diff/visual_diff/annotations/render/compare). Public API unchanged.
+- Dockerfile: base images pinned by digest (node:26-alpine, python:3.14-slim)
+- Dependencies: major-version upper bounds added (PyMuPDF<2, numpy<3, opencv-python-headless<5, fastapi<1, uvicorn<1, python-multipart<1)
+
 ## 0.1.4 - 2026-08-23 - Security hardening release
 
 Findings from an internal security/code audit; see individual items below.

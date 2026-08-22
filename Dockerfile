@@ -1,4 +1,5 @@
-FROM node:26-alpine AS pdfjs
+# keep digests updated when bumping tags (dependabot will propose bumps)
+FROM node:26-alpine@sha256:aadf416b2cdce311a8811ba3f0608a61b77dbf997500e2eafe781b51f6a0b019 AS pdfjs
 
 # keep in sync with PDFJS_VERSION in src/kogo/cli.py
 ARG PDFJS_VERSION=6.2.108
@@ -8,7 +9,7 @@ RUN npm pack "pdfjs-dist@${PDFJS_VERSION}" --silent \
     && tar -xzf pdfjs-dist-*.tgz -C package --strip-components=1
 
 
-FROM python:3.14-slim
+FROM python:3.14-slim@sha256:ce40764625a4ff50df3548277632e7f96c4e77fe75fa848aae9885476e7df5a4
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

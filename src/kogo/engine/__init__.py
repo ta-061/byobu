@@ -13,19 +13,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-"""kogo: layout-aware PDF diff for revisions.
+"""Layout-aware PDF comparison engine.
 
-Library usage:
-
-    import kogo
-
-    result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
-    # -> old-highlighted.pdf, new-highlighted.pdf, side-by-side.pdf,
-    #    result.json (and previews/) under out/
+Text is compared at word precision (character precision for CJK languages)
+after reconstructing a reading order from page whitespace. Figures,
+equations, and layout changes are detected as pixel differences outside
+text areas. Pages are aligned with a similarity-based sequence alignment
+so inserted or removed pages do not desynchronize the comparison.
 """
 
-from kogo.engine import ComparisonError, compare_pdfs
+from __future__ import annotations
 
-__version__ = "0.1.5"
+from .alignment import align_pages
+from .compare import ComparisonError, compare_pdfs
+from .words import _is_cjk
 
-__all__ = ["ComparisonError", "compare_pdfs", "__version__"]
+__all__ = ["compare_pdfs", "ComparisonError"]
