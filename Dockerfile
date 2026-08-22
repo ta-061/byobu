@@ -1,4 +1,4 @@
-FROM node:24-alpine AS pdfjs
+FROM node:26-alpine AS pdfjs
 
 # keep in sync with PDFJS_VERSION in src/kogo/cli.py
 ARG PDFJS_VERSION=6.2.108
