@@ -8,7 +8,7 @@ RUN npm pack "pdfjs-dist@${PDFJS_VERSION}" --silent \
     && tar -xzf pdfjs-dist-*.tgz -C package --strip-components=1
 
 
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
