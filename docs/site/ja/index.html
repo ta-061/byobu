@@ -186,6 +186,20 @@ print(result["summary"])
           </button>
         </div>
         <p style="margin-top:12px"><code>kogo.compare_pdfs</code> は、暗号化・空・ページ数超過・読み込み不能などの場合に <code>kogo.ComparisonError</code> を送出します。キーワード引数はCLIと同じです(<code>dpi</code>、<code>sensitivity</code>、<code>max_pages</code>、<code>previews</code>、<code>old_name</code>、<code>new_name</code>)。</p>
+        <h4 class="api-table-title">戻り値の構造</h4>
+        <table class="api-table">
+          <thead>
+            <tr><th>キー</th><th>内容</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>files</code></td><td>入力ファイル名とページ数</td></tr>
+            <tr><td><code>summary</code></td><td>合計値: 変更・追加・削除ページ数、追加・削除トークン数、視覚差分、スタイル変更、注釈変更</td></tr>
+            <tr><td><code>rows</code></td><td>対応付けられたページごと: <code>kind</code>(unchanged / changed / added_page / deleted_page)、ページ番号、変更数、テキスト抜粋</td></tr>
+            <tr><td><code>artifacts</code></td><td>出力ファイル名とサイズ(旧版・新版・左右比較)</td></tr>
+            <tr><td><code>legend</code>、<code>settings</code></td><td>色の凡例と比較設定</td></tr>
+          </tbody>
+        </table>
+        <p class="api-note">完全なJSONは <code>out/result.json</code> にも書き出されます。全仕様は <code>help(kogo.compare_pdfs)</code> を参照してください。</p>
       </div>
     </div>
     <p class="qs-note">

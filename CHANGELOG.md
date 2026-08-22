@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 - 2026-08-23 - Library documentation
+
+- Full docstring for `kogo.compare_pdfs` (usable via `help()` and IDEs)
+- `py.typed` marker: the package is now PEP 561 typed
+- Project site: API result-structure table added (EN/JA)
+
 ## 0.1.2 - 2026-08-23 - Project site, PyPI page fix
 
 - Project website published (GitHub Pages): https://portfolio.tatu-sec.dev/kogo/

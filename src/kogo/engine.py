@@ -1148,6 +1148,57 @@ def compare_pdfs(
     max_pages: int = 200,
     previews: bool = True,
 ) -> dict[str, Any]:
+    """Compare two revisions of a PDF document and produce marked outputs.
+
+    Text is compared at word precision (character precision for CJK text,
+    including supplementary-plane kanji), after reconstructing a reading
+    order from page layout. Figures, equations, and layout changes are
+    detected visually outside text areas, and existing PDF annotations
+    (highlights, comments, ink) are fingerprinted and diffed. Style-only
+    changes (bold, italic, font size) on unchanged text are reported as
+    well. All markers are baked into the output PDFs.
+
+    Args:
+        old_path: PDF of the previous revision.
+        new_path: PDF of the updated revision.
+        output_dir: Directory for results; created if missing.
+        old_name: Display name of the old file; defaults to its file name.
+        new_name: Display name of the new file; defaults to its file name.
+        dpi: Rendering resolution for the visual diff, 96-180.
+        sensitivity: Figure detection sensitivity: "high", "standard",
+            or "low".
+        max_pages: Maximum number of pages allowed per file.
+        previews: Whether to generate per-page JPEG previews.
+
+    Returns:
+        A dict (also written to output_dir/result.json) with keys:
+
+        - "files": {"old": {"name", "pages"}, "new": {"name", "pages"}}
+        - "settings": {"dpi", "sensitivity", "large_document_fallback"}
+        - "summary": counts such as "compared_rows", "changed_pages",
+          "added_pages", "deleted_pages", "added_words", "deleted_words",
+          "visual_regions", "style_changes", "annotation_changes"
+        - "legend": human-readable color explanations
+        - "artifacts": {"old", "new", "side_by_side"} ->
+          {"name", "label", "size"}
+        - "rows": one entry per aligned page pair with "kind"
+          ("unchanged", "changed", "added_page", "deleted_page"),
+          "old"/"new" page info, and "changes" counts/snippets
+
+        Files written to output_dir: old-highlighted.pdf,
+        new-highlighted.pdf, side-by-side.pdf, result.json, and
+        previews/ when previews is True.
+
+    Raises:
+        ComparisonError: user-facing problems such as encrypted, empty,
+            oversized, unreadable, or non-PDF input.
+
+    Example:
+        import kogo
+
+        result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+        print(result["summary"]["changed_pages"])
+    """
     old_name = old_name or Path(old_path).name
     new_name = new_name or Path(new_path).name
     output_dir.mkdir(parents=True, exist_ok=True)

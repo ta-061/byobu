@@ -371,6 +371,40 @@ section {
   line-height: 1.7;
 }
 
+.api-table-title {
+  margin: 16px 0 8px;
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.api-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.api-table th,
+.api-table td {
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.api-table th {
+  background: rgba(23, 33, 31, 0.05);
+  font-weight: 700;
+}
+
+.api-table td {
+  color: var(--ink-soft);
+}
+
+.api-note {
+  margin-top: 10px;
+}
+
 pre {
   margin: 0;
   padding: 16px 18px;

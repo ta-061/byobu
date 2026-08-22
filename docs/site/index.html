@@ -186,6 +186,20 @@ print(result["summary"])
           </button>
         </div>
         <p style="margin-top:12px"><code>kogo.compare_pdfs</code> raises <code>kogo.ComparisonError</code> for user-facing problems (encrypted, empty, oversized, or unreadable PDFs). Keyword options mirror the CLI: <code>dpi</code>, <code>sensitivity</code>, <code>max_pages</code>, <code>previews</code>, <code>old_name</code>, <code>new_name</code>.</p>
+        <h4 class="api-table-title">Result structure</h4>
+        <table class="api-table">
+          <thead>
+            <tr><th>result key</th><th>content</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>files</code></td><td>file names and page counts of both inputs</td></tr>
+            <tr><td><code>summary</code></td><td>totals: changed / added / deleted pages, added / deleted tokens, visual regions, style changes, annotation changes</td></tr>
+            <tr><td><code>rows</code></td><td>per aligned page pair: <code>kind</code> (unchanged / changed / added_page / deleted_page), page numbers, change counts, text snippets</td></tr>
+            <tr><td><code>artifacts</code></td><td>output file names and sizes (old-highlighted, new-highlighted, side-by-side)</td></tr>
+            <tr><td><code>legend</code>, <code>settings</code></td><td>color legend and comparison settings used</td></tr>
+          </tbody>
+        </table>
+        <p class="api-note">The full JSON is also written to <code>out/result.json</code>. Run <code>help(kogo.compare_pdfs)</code> for the complete reference.</p>
       </div>
     </div>
     <p class="qs-note">
