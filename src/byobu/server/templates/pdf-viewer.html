@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>byobu Viewer</title>
+    <link rel="stylesheet" href="/static/pdf-viewer.css" />
+    <script type="module" src="/static/pdf-viewer.mjs"></script>
+  </head>
+  <body>
+    <header class="viewer-toolbar">
+      <div class="toolbar-group">
+        <button id="zoom-out" type="button" aria-label="Zoom out" title="Zoom out">−</button>
+        <button id="fit-width" type="button" aria-label="Fit to width">Fit width</button>
+        <button id="zoom-in" type="button" aria-label="Zoom in" title="Zoom in">＋</button>
+      </div>
+      <div class="page-control">
+        <label for="page-number">Page</label>
+        <input id="page-number" type="number" min="1" value="1" inputmode="numeric" />
+        <span>/ <b id="page-count">—</b></span>
+      </div>
+      <span class="viewer-status" id="viewer-status">Loading…</span>
+    </header>
+    <div id="viewerContainer" role="main" tabindex="0">
+      <div id="viewer" class="pdfViewer"></div>
+    </div>
+    <div class="viewer-loading" id="viewer-loading" role="status">
+      <span class="loading-ring"></span>
+      <span id="loading-message">Loading with PDF.js…</span>
+    </div>
+  </body>
+</html>

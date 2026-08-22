@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Compare an old and new PDF revision and clearly highlight added, deleted, and figure changes." />
+    <meta name="theme-color" content="#17211f" />
+    <title>byobu — layout-aware PDF diff for revisions</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%2317211f%22/><path d=%22M18 14h20l9 9v27H18z%22 fill=%22%23fff%22/><path d=%22M38 14v10h10%22 fill=%22none%22 stroke=%22%23ef7b5c%22 stroke-width=%224%22/><path d=%22M24 33h17M24 40h13%22 stroke=%22%232eb872%22 stroke-width=%224%22/></svg>" />
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="byobu home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32"><path d="M7 4h12l6 6v18H7z"/><path d="M19 4v7h7"/><path d="M11 17h10M11 22h7"/></svg>
+        </span>
+        <span><b>byobu</b></span>
+      </a>
+      <div class="header-note">
+        <span class="status-dot"></span>
+        Processed on this device
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="upload-section">
+        <div class="hero-copy">
+          <p class="eyebrow">FOR RESEARCH &amp; WRITING</p>
+          <h1><span class="hero-line">Revision changes,</span><br /><em>at a glance.</em></h1>
+          <p class="lead">
+            Accounting for columns, line wrapping, and page breaks, byobu finds added text,
+            deleted text, and figure or equation changes on every page.
+          </p>
+          <div class="legend hero-legend" aria-label="Diff color legend">
+            <span><i class="swatch added"></i>Added</span>
+            <span><i class="swatch deleted"></i>Deleted</span>
+            <span><i class="swatch visual"></i>Figures &amp; annotations</span>
+            <span><i class="swatch style"></i>Style</span>
+          </div>
+        </div>
+
+        <form class="compare-panel" id="compare-form" novalidate>
+          <div class="panel-heading">
+            <div>
+              <p class="step-label">STEP 01</p>
+              <h2>Choose two PDFs</h2>
+            </div>
+            <span class="local-badge" title="Nothing is sent to an external service">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.6-2.8 8-7 10-4.2-2-7-5.4-7-10V6z"/><path d="M9 12l2 2 4-5"/></svg>
+              LOCAL
+            </span>
+          </div>
+
+          <div class="upload-grid">
+            <div class="upload-wrap">
+              <div class="upload-label"><span class="version old">OLD</span>Old version PDF</div>
+              <label class="dropzone" id="old-dropzone" for="old-pdf" tabindex="0">
+                <input id="old-pdf" name="old_pdf" type="file" accept="application/pdf,.pdf" />
+                <span class="upload-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v6h6M12 17V11M9.5 13.5L12 11l2.5 2.5"/></svg>
+                </span>
+                <span class="drop-title">Drop here</span>
+                <span class="drop-subtitle">or click to choose</span>
+                <span class="file-selected" hidden>
+                  <span class="file-name"></span>
+                  <span class="file-size"></span>
+                </span>
+              </label>
+            </div>
+
+            <div class="direction-arrow" aria-hidden="true">
+              <svg viewBox="0 0 48 24"><path d="M2 12h40M34 4l8 8-8 8"/></svg>
+            </div>
+
+            <div class="upload-wrap">
+              <div class="upload-label"><span class="version new">NEW</span>New version PDF</div>
+              <label class="dropzone" id="new-dropzone" for="new-pdf" tabindex="0">
+                <input id="new-pdf" name="new_pdf" type="file" accept="application/pdf,.pdf" />
+                <span class="upload-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v6h6M12 17V11M9.5 13.5L12 11l2.5 2.5"/></svg>
+                </span>
+                <span class="drop-title">Drop here</span>
+                <span class="drop-subtitle">or click to choose</span>
+                <span class="file-selected" hidden>
+                  <span class="file-name"></span>
+                  <span class="file-size"></span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <details class="advanced-options">
+            <summary>Detection settings <span>Usually no changes needed</span></summary>
+            <div class="option-grid">
+              <label>
+                <span>Figure detection sensitivity</span>
+                <select id="sensitivity" name="sensitivity">
+                  <option value="high">High — catches small changes</option>
+                  <option value="standard" selected>Standard — recommended</option>
+                  <option value="low">Low — suppresses noise</option>
+                </select>
+              </label>
+              <label>
+                <span>Analysis resolution</span>
+                <select id="dpi" name="dpi">
+                  <option value="120">Fast</option>
+                  <option value="144" selected>Standard — recommended</option>
+                  <option value="180">Fine detail</option>
+                </select>
+              </label>
+            </div>
+          </details>
+
+          <div class="form-error" id="form-error" role="alert" hidden></div>
+          <button class="compare-button" id="compare-button" type="submit" disabled>
+            <span>Analyze differences</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="privacy-note">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M5 9V6a5 5 0 0110 0v3M3 9h14v9H3z"/></svg>
+            PDFs are processed only inside this container, and comparison results are deleted automatically after 24 hours.
+          </p>
+        </form>
+      </section>
+
+      <section class="result-section" id="result-section" hidden aria-live="polite">
+        <div class="result-header">
+          <div>
+            <p class="eyebrow">COMPARISON COMPLETE</p>
+            <h2>Comparison results</h2>
+            <p class="result-filenames" id="result-filenames"></p>
+          </div>
+          <button class="secondary-button" id="new-comparison" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Compare another PDF
+          </button>
+        </div>
+
+        <div class="summary-grid" id="summary-grid"></div>
+
+        <div class="download-panel">
+          <div class="download-copy">
+            <span class="section-number">02</span>
+            <div>
+              <h3>Save marked-up PDFs</h3>
+              <p>Markers are baked into the page content so they always show up in any PDF viewer.</p>
+            </div>
+          </div>
+          <div class="download-actions" id="download-actions"></div>
+        </div>
+
+        <section class="web-pdf-preview" aria-labelledby="web-preview-title">
+          <div class="web-preview-header">
+            <div class="web-preview-title-wrap">
+              <span class="section-number">PREVIEW</span>
+              <div>
+                <h3 id="web-preview-title">Web PDF preview</h3>
+                <p>Review the generated PDFs in your browser before downloading.</p>
+              </div>
+            </div>
+            <div class="web-preview-actions">
+              <div class="pdf-tabs" id="pdf-preview-tabs" role="tablist" aria-label="PDF to preview">
+                <button type="button" role="tab" data-pdf="old">Old</button>
+                <button type="button" role="tab" data-pdf="new">New</button>
+                <button class="active" type="button" role="tab" data-pdf="side_by_side">Side-by-side</button>
+              </div>
+              <a class="open-pdf-button" id="pdf-open-new" href="#" target="_blank" rel="noopener">
+                Open in new tab
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 5h5v5M19 5l-8 8M18 13v6H5V6h6"/></svg>
+              </a>
+            </div>
+          </div>
+          <div class="pdfjs-frame-shell">
+            <iframe id="pdfjs-preview-frame" title="Selectable PDF preview powered by PDF.js" loading="lazy"></iframe>
+          </div>
+          <p class="pdf-preview-note">Powered by Mozilla PDF.js. Drag to select and copy text.</p>
+        </section>
+
+        <div class="viewer-heading">
+          <div>
+            <span class="section-number">03</span>
+            <div>
+              <h3>Page-by-page diff</h3>
+              <p id="viewer-caption"></p>
+            </div>
+          </div>
+          <div class="viewer-controls" role="group" aria-label="Filter pages">
+            <button class="filter-button active" type="button" data-filter="changed">Changed</button>
+            <button class="filter-button" type="button" data-filter="all">All</button>
+          </div>
+        </div>
+
+        <div class="viewer-column-labels" aria-hidden="true">
+          <span>OLD</span>
+          <span>NEW</span>
+        </div>
+        <div class="page-list" id="page-list"></div>
+        <div class="empty-filter" id="empty-filter" hidden>
+          <span>✓</span>
+          <h3>No changed pages</h3>
+          <p>The text and figures are identical.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>byobu</span>
+      <span>Paper revisions, made visible.</span>
+      <a class="footer-link" href="https://github.com/ta-061/byobu" target="_blank" rel="noopener">Source code</a>
+    </footer>
+
+    <div class="processing-overlay" id="processing-overlay" hidden role="status" aria-live="assertive">
+      <div class="processing-card">
+        <div class="scan-animation" aria-hidden="true">
+          <div class="paper paper-back"></div>
+          <div class="paper paper-front"><span></span><span></span><span></span><i></i></div>
+        </div>
+        <p class="step-label">ANALYZING DOCUMENTS</p>
+        <h2>Comparing PDFs</h2>
+        <p class="processing-message" id="processing-message">Loading files…</p>
+        <div class="indeterminate-progress"><span></span></div>
+        <p class="processing-note">Documents with many pages can take a few minutes</p>
+      </div>
+    </div>
+
+    <div class="image-modal" id="image-modal" hidden role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <div class="modal-bar">
+        <h2 id="modal-title">Page preview</h2>
+        <button id="modal-close" type="button" aria-label="Close">
+          <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+      </div>
+      <div class="modal-canvas"><img id="modal-image" alt="Enlarged page preview" /></div>
+    </div>
+  </body>
+</html>

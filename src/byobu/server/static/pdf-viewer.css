@@ -1,0 +1,177 @@
+:root {
+  --toolbar-height: 45px;
+  --viewer-bg: #252827;
+  --viewer-ink: #f5f6f4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  color: var(--viewer-ink);
+  background: var(--viewer-bg);
+  font-family: Inter, "Hiragino Sans", "Yu Gothic UI", system-ui, sans-serif;
+}
+
+.viewer-toolbar {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto;
+  height: var(--toolbar-height);
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: #181b1a;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+}
+
+.toolbar-group,
+.page-control {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.viewer-toolbar button,
+.viewer-toolbar input {
+  height: 29px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 6px;
+  color: var(--viewer-ink);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.viewer-toolbar button {
+  min-width: 30px;
+  padding: 0 8px;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.viewer-toolbar button:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.13);
+}
+
+.viewer-toolbar button:disabled {
+  cursor: wait;
+  opacity: 0.45;
+}
+
+.page-control {
+  color: rgba(255, 255, 255, 0.67);
+  font-size: 9px;
+}
+
+.page-control input {
+  width: 47px;
+  padding: 0 5px;
+  text-align: center;
+  outline: none;
+}
+
+.page-control input:focus {
+  border-color: #8c71df;
+}
+
+.page-control b {
+  color: white;
+  font-weight: 700;
+}
+
+.viewer-status {
+  margin-left: auto;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 8px;
+}
+
+#viewerContainer {
+  position: absolute;
+  inset: var(--toolbar-height) 0 0;
+  overflow: auto;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    var(--viewer-bg);
+  background-size: 22px 22px;
+  scrollbar-color: #6d736f #252827;
+  outline: none;
+}
+
+.pdfViewer .page {
+  margin: 14px auto;
+  border: 0;
+  border-radius: 2px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.pdfViewer .textLayer {
+  opacity: 1;
+}
+
+.pdfViewer .textLayer ::selection {
+  color: transparent;
+  background: rgba(66, 133, 244, 0.42);
+}
+
+.viewer-loading {
+  position: absolute;
+  z-index: 15;
+  inset: var(--toolbar-height) 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  color: rgba(255, 255, 255, 0.68);
+  background: var(--viewer-bg);
+  font-size: 10px;
+}
+
+.viewer-loading.hidden {
+  display: none;
+}
+
+.viewer-loading.error {
+  color: #ffaea7;
+}
+
+.loading-ring {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.22);
+  border-top-color: #9a7bea;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.viewer-loading.error .loading-ring {
+  display: none;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 560px) {
+  .viewer-toolbar {
+    gap: 8px;
+    padding: 0 7px;
+  }
+
+  #fit-width {
+    display: none;
+  }
+
+  .viewer-status {
+    display: none;
+  }
+}

@@ -1,0 +1,63 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "byobu"
+version = "0.1.0"
+description = "Layout-aware PDF diff for revisions: added/deleted text, figures, equations, and annotations, in the browser and in marked PDFs."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "AGPL-3.0-only" }
+authors = [{ name = "ta-061" }]
+keywords = ["pdf", "diff", "compare", "revision", "proofreading", "redline"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Environment :: Web Environment",
+    "Framework :: FastAPI",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "PyMuPDF>=1.24",
+    "numpy>=1.26",
+    "opencv-python-headless>=4.9",
+]
+
+[project.optional-dependencies]
+serve = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "python-multipart>=0.0.9",
+]
+dev = [
+    "httpx",
+]
+
+[project.urls]
+Homepage = "https://github.com/ta-061/byobu"
+Repository = "https://github.com/ta-061/byobu"
+Issues = "https://github.com/ta-061/byobu/issues"
+
+[project.scripts]
+byobu = "byobu.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"byobu.server" = [
+    "templates/*",
+    "static/*.css",
+    "static/*.js",
+    "static/*.mjs",
+    "static/vendor/**/*",
+]
