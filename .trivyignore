@@ -1,0 +1,29 @@
+# Reviewed 2026-08-23 (see CI run for the full first-scan triage). Each entry
+# below was individually verified against the actual image contents, not
+# just accepted from the scanner - see the commit message for how.
+#
+# msgpack: vendored inside pip's own bundled wheel
+# (/usr/local/lib/python3.14/site-packages/pip/_vendor/msgpack), not a
+# package kogo or any of its declared dependencies import. Only reachable if
+# pip itself ran inside the container, which it doesn't at runtime (kogo
+# serve is the only thing that runs). Fix is upstream pip bundling a newer
+# vendored copy, not anything in this repo.
+GHSA-6v7p-g79w-8964 exp:2026-11-23
+
+# setuptools: trivy reports this with no resolvable file path, and there is
+# no setuptools package actually importable/installed in the built image
+# (verified directly: `python -c "import setuptools"` fails, and no
+# setuptools-named file exists anywhere in the image). Appears to be a
+# metadata-detection artifact, not an installed, reachable package.
+CVE-2025-47273 exp:2026-11-23
+
+# util-linux (mount/login/libuuid1/libblkid, Debian trixie): no fix is
+# available yet in the currently-pinned python:3.14-slim digest - `docker
+# pull python:3.14-slim` resolves to the exact same digest already pinned in
+# the Dockerfile, so there is nothing newer to re-pin to. Revisit when a
+# rebuilt upstream image is published; ignore-unfixed doesn't suppress these
+# because Debian's own advisory does list a fix, just not yet in this image.
+CVE-2026-53612 exp:2026-11-23
+CVE-2026-53613 exp:2026-11-23
+CVE-2026-53614 exp:2026-11-23
+CVE-2026-53615 exp:2026-11-23

@@ -12,6 +12,7 @@ Findings from a fresh audit, verified with hands-on repro (not just static revie
 - Web app: `MAX_RENDER_PIXELS` lowered from 40M to 24M pixels, so two concurrent worst-case visual diffs leave comfortable headroom under `docker-compose.yml`'s default 2 GB memory limit.
 - Web app: the operator-set `KOGO_SOURCE_URL` is now HTML-escaped before being templated into the footer link (hardening; not attacker-reachable in the normal threat model).
 - Project: added `ROADMAP.md` item for a global job-storage quota; `MAX_PAGES`/timeout/thread-abandonment limitations noted in earlier releases and ROADMAP item 12 remain tracked as-is — this pass's engine fixes remove the two cheapest ways to create a long-running job in the first place.
+- CI/CD: added `pip-audit` (0 findings against kogo's actual dependencies), a Trivy container scan, CodeQL, and `dependency-review-action` on PRs — no AI-based tooling, all traditional static analysis / CVE database lookups. Releases now attach a CycloneDX SBOM. Enabled Dependabot vulnerability alerts (were off). `.trivyignore` documents the first scan's non-actionable findings (a metadata artifact and a vulnerability vendored inside pip's own bundled wheel, neither reachable via kogo, plus base-image OS packages with no fix published upstream yet) with an expiry date to force periodic re-review rather than ignoring them permanently.
 
 ## 0.1.6 - 2026-08-23 - Library API round-out & project infrastructure
 
