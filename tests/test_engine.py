@@ -619,6 +619,51 @@ class DiffEngineTests(unittest.TestCase):
             self.assertEqual(result["files"]["new"]["name"], "after.pdf")
             self.assertGreater(result["summary"]["visual_regions"], 0)
 
+    def test_artifacts_false_skips_marked_pdfs_but_keeps_summary(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_pdf(root / "before.pdf", [("Sentence stays here.", "square")])
+            make_pdf(root / "after.pdf", [("Sentence changes here.", "square")])
+
+            result = compare_pdfs(
+                root / "before.pdf", root / "after.pdf", root / "out", dpi=96, artifacts=False
+            )
+
+            self.assertIsNone(result["artifacts"])
+            self.assertGreater(result["summary"]["added_words"], 0)
+            self.assertFalse((root / "out" / "old-highlighted.pdf").exists())
+            self.assertFalse((root / "out" / "new-highlighted.pdf").exists())
+            self.assertFalse((root / "out" / "side-by-side.pdf").exists())
+            self.assertTrue((root / "out" / "result.json").exists())
+
+    def test_on_progress_reports_each_row_up_to_the_total(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            make_pdf(
+                root / "before.pdf",
+                [("First page.", "square"), ("Second page.", "circle")],
+            )
+            make_pdf(
+                root / "after.pdf",
+                [("First page.", "square"), ("Second page changed.", "circle")],
+            )
+
+            calls: list[tuple[str, int, int]] = []
+            compare_pdfs(
+                root / "before.pdf",
+                root / "after.pdf",
+                root / "out",
+                dpi=96,
+                on_progress=lambda phase, current, total: calls.append((phase, current, total)),
+            )
+
+            comparing_calls = [call for call in calls if call[0] == "comparing"]
+            self.assertEqual(
+                [current for _, current, _ in comparing_calls], list(range(1, len(comparing_calls) + 1))
+            )
+            self.assertTrue(all(total == len(comparing_calls) for _, _, total in comparing_calls))
+            self.assertIn(("aligned", 1, 1), calls)
+
 
 if __name__ == "__main__":
     unittest.main()

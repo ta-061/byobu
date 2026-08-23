@@ -24,8 +24,34 @@ so inserted or removed pages do not desynchronize the comparison.
 
 from __future__ import annotations
 
-from .alignment import align_pages
 from .compare import ComparisonError, compare_pdfs
+from .result_types import (
+    ArtifactInfo,
+    Artifacts,
+    ComparisonResult,
+    FileInfo,
+    Files,
+    Legend,
+    PageRef,
+    Row,
+    RowChanges,
+    Settings,
+    Summary,
+)
 from .words import _is_cjk
 
-__all__ = ["compare_pdfs", "ComparisonError"]
+__all__ = [
+    "compare_pdfs",
+    "ComparisonError",
+    "ComparisonResult",
+    "Files",
+    "FileInfo",
+    "Settings",
+    "Summary",
+    "Legend",
+    "Artifacts",
+    "ArtifactInfo",
+    "PageRef",
+    "RowChanges",
+    "Row",
+]

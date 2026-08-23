@@ -17,7 +17,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import pymupdf as fitz
 
@@ -37,6 +37,7 @@ from .render import (
     _group_word_rects,
     _preview_page,
 )
+from .result_types import ComparisonResult
 from .text_diff import _difference_snippets, _document_text_differences, _snippet
 from .visual_diff import VisualRegion, _visual_differences
 from .words import Word, _page_words
@@ -91,7 +92,9 @@ def compare_pdfs(
     sensitivity: str = "standard",
     max_pages: int = 200,
     previews: bool = True,
-) -> dict[str, Any]:
+    artifacts: bool = True,
+    on_progress: Callable[[str, int, int], None] | None = None,
+) -> ComparisonResult:
     """Compare two revisions of a PDF document and produce marked outputs.
 
     Text is compared at word precision (character precision for CJK text,
@@ -113,24 +116,28 @@ def compare_pdfs(
             or "low".
         max_pages: Maximum number of pages allowed per file.
         previews: Whether to generate per-page JPEG previews.
+        artifacts: Whether to bake and save the marked old/new/side-by-side
+            PDFs. Set to False to skip that I/O when only the JSON summary
+            is needed (e.g. a CI step); ``result["artifacts"]`` is then
+            ``None``. ``result.json`` is still written either way.
+        on_progress: Optional callback invoked as
+            ``on_progress(phase, current, total)`` while the comparison
+            runs, with ``phase`` one of ``"aligned"``, ``"comparing"``
+            (once per aligned row), ``"rendering"``, and ``"previews"``.
+            Purely informational; exceptions it raises are not caught.
 
     Returns:
-        A dict (also written to output_dir/result.json) with keys:
+        A `ComparisonResult` dict (also written to output_dir/result.json) with keys:
 
         - "files": {"old": {"name", "pages"}, "new": {"name", "pages"}}
         - "settings": {"dpi", "sensitivity", "large_document_fallback"}
-        - "summary": counts such as "compared_rows", "changed_pages",
-          "added_pages", "deleted_pages", "added_words", "deleted_words",
-          "visual_regions", "style_changes", "annotation_changes"
+        - "summary": word/page/visual-region/annotation/style change counts
         - "legend": human-readable color explanations
-        - "artifacts": {"old", "new", "side_by_side"} ->
-          {"name", "label", "size"}
-        - "rows": one entry per aligned page pair with "kind"
-          ("unchanged", "changed", "added_page", "deleted_page"),
-          "old"/"new" page info, and "changes" counts/snippets
+        - "artifacts": {"old", "new", "side_by_side"} -> {"name", "label", "size"}, or None when artifacts=False
+        - "rows": one entry per aligned page pair with "kind", "old"/"new" page info, and "changes" counts/snippets
 
-        Files written to output_dir: old-highlighted.pdf,
-        new-highlighted.pdf, side-by-side.pdf, result.json, and
+        Files written to output_dir: result.json always; old-highlighted.pdf,
+        new-highlighted.pdf, and side-by-side.pdf when artifacts is True;
         previews/ when previews is True.
 
     Raises:
@@ -138,13 +145,20 @@ def compare_pdfs(
             oversized, unreadable, or non-PDF input.
 
     Example:
+        ```python
         import kogo
 
         result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
         print(result["summary"]["changed_pages"])
+        ```
     """
     old_name = old_name or Path(old_path).name
     new_name = new_name or Path(new_path).name
+
+    def _report(phase: str, current: int, total: int) -> None:
+        if on_progress is not None:
+            on_progress(phase, current, total)
+
     output_dir.mkdir(parents=True, exist_ok=True)
     preview_dir = output_dir / "previews"
     if previews:
@@ -187,6 +201,7 @@ def compare_pdfs(
             old_page_visuals,
             new_page_visuals,
         )
+        _report("aligned", 1, 1)
         deleted_words_by_page, added_words_by_page, style_changes_by_pair, large_document_fallback = (
             _document_text_differences(
                 old_words_by_page,
@@ -299,6 +314,7 @@ def compare_pdfs(
             total_added_annotations += len(added_annotations)
             total_deleted_annotations += len(deleted_annotations)
             total_style_changes += len(style_changes)
+            _report("comparing", row_index, len(alignment))
             rows.append(
                 {
                     "row": row_index,
@@ -323,14 +339,17 @@ def compare_pdfs(
         old_output = output_dir / "old-highlighted.pdf"
         new_output = output_dir / "new-highlighted.pdf"
         compare_output = output_dir / "side-by-side.pdf"
-        old_doc.set_metadata({**old_doc.metadata, "creator": MARKER_AUTHOR})
-        new_doc.set_metadata({**new_doc.metadata, "creator": MARKER_AUTHOR})
-        # Convert annotations into regular page content so markers remain visible
-        # when printing or when a PDF viewer hides annotations by default.
-        old_doc.bake(annots=True, widgets=False)
-        new_doc.bake(annots=True, widgets=False)
-        old_doc.save(old_output, garbage=4, deflate=True)
-        new_doc.save(new_output, garbage=4, deflate=True)
+        if artifacts:
+            old_doc.set_metadata({**old_doc.metadata, "creator": MARKER_AUTHOR})
+            new_doc.set_metadata({**new_doc.metadata, "creator": MARKER_AUTHOR})
+            # Convert annotations into regular page content so markers remain visible
+            # when printing or when a PDF viewer hides annotations by default.
+            old_doc.bake(annots=True, widgets=False)
+            new_doc.bake(annots=True, widgets=False)
+            old_doc.save(old_output, garbage=4, deflate=True)
+            new_doc.save(new_output, garbage=4, deflate=True)
+            _comparison_pdf(old_doc, new_doc, alignment, compare_output)
+            _report("rendering", 1, 1)
 
         if previews:
             for row in rows:
@@ -343,10 +362,10 @@ def compare_pdfs(
                     new_preview = preview_dir / f"row-{row_number:04d}-new.jpg"
                     _preview_page(new_doc[int(row["new"]["page"]) - 1], new_preview)
                     row["new"]["preview"] = f"previews/{new_preview.name}"
+            _report("previews", 1, 1)
 
-        _comparison_pdf(old_doc, new_doc, alignment, compare_output)
         changed_pages = sum(1 for row in rows if row["has_changes"])
-        result: dict[str, Any] = {
+        result: ComparisonResult = {
             "files": {
                 "old": {"name": old_name, "pages": old_doc.page_count},
                 "new": {"name": new_name, "pages": new_doc.page_count},
@@ -377,11 +396,15 @@ def compare_pdfs(
                 "annotation": "Highlights, comments, and ink annotations added to or removed from the PDF",
                 "style": "Font size, bold, or italic changes on otherwise-unchanged text",
             },
-            "artifacts": {
-                "old": _artifact_info(old_output, "Old version with deletions marked"),
-                "new": _artifact_info(new_output, "New version with additions marked"),
-                "side_by_side": _artifact_info(compare_output, "Side-by-side comparison"),
-            },
+            "artifacts": (
+                {
+                    "old": _artifact_info(old_output, "Old version with deletions marked"),
+                    "new": _artifact_info(new_output, "New version with additions marked"),
+                    "side_by_side": _artifact_info(compare_output, "Side-by-side comparison"),
+                }
+                if artifacts
+                else None
+            ),
             "rows": rows,
         }
         (output_dir / "result.json").write_text(

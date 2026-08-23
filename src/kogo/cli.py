@@ -107,6 +107,14 @@ def _add_fetch_viewer_parser(subparsers: argparse._SubParsersAction) -> None:
     parser.set_defaults(handler=_run_fetch_viewer)
 
 
+def _print_progress(phase: str, current: int, total: int) -> None:
+    if phase != "comparing":
+        return
+    print(f"Comparing page {current}/{total}...", end="\r", file=sys.stderr)
+    if current == total:
+        print(file=sys.stderr)
+
+
 def _run_diff(args: argparse.Namespace) -> int:
     output_dir = Path(args.out)
     try:
@@ -120,6 +128,7 @@ def _run_diff(args: argparse.Namespace) -> int:
             sensitivity=args.sensitivity,
             max_pages=args.max_pages,
             previews=not args.no_previews,
+            on_progress=None if args.json else _print_progress,
         )
     except ComparisonError as exc:
         print(str(exc), file=sys.stderr)

@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6 - 2026-08-23 - Library API round-out & project infrastructure
+
+- Library API: `compare_pdfs` return type is now the typed `ComparisonResult` (and nested `Files`/`Settings`/`Summary`/`Legend`/`Artifacts`/`ArtifactInfo`/`Row`/`RowChanges`/`PageRef`) `TypedDict`s, exported from `kogo` for IDE/type-checker support. Runtime shape is unchanged.
+- Library API: new `artifacts: bool = True` keyword — set to `False` to skip baking/saving the marked PDFs (and `_comparison_pdf`) when only the JSON summary is needed, e.g. in a CI step; `result["artifacts"]` is `None` in that case.
+- Library API: new `on_progress` keyword — an optional `(phase, current, total)` callback invoked as a comparison runs (`"aligned"`, `"comparing"` per row, `"rendering"`, `"previews"`). `kogo diff` now shows row-by-row progress on stderr when not run with `--json`.
+- Project: added GitHub issue/PR templates, `CODE_OF_CONDUCT.md`, enabled Discussions, and set the repo homepage.
+- Project: added a documentation site (`docs-src/`, mkdocs-material + mkdocstrings) published at kogo.tatu-sec.dev/manual/, alongside the existing docstrings and README.
+
 ## 0.1.5 - 2026-08-23 - Maintainability & supply-chain hardening
 
 - Internal: split engine.py into the kogo.engine package (words/alignment/text_diff/visual_diff/annotations/render/compare). Public API unchanged.

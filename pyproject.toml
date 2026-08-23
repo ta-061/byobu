@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kogo"
-version = "0.1.5"
+version = "0.1.6"
 description = "Layout-aware PDF diff for revisions: added/deleted text, figures, equations, and annotations, in the browser and in marked PDFs."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -40,6 +40,10 @@ serve = [
 ]
 dev = [
     "httpx",
+]
+docs = [
+    "mkdocs-material>=9,<10",
+    "mkdocstrings[python]>=0.26,<1",
 ]
 
 [project.urls]

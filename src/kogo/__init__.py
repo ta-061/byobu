@@ -19,13 +19,46 @@ Library usage:
 
     import kogo
 
-    result = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
+    result: kogo.ComparisonResult = kogo.compare_pdfs("old.pdf", "new.pdf", "out/")
     # -> old-highlighted.pdf, new-highlighted.pdf, side-by-side.pdf,
     #    result.json (and previews/) under out/
+
+For a JSON-only summary without writing the marked PDFs (e.g. in a CI step),
+pass ``artifacts=False``. For progress reporting during a long comparison,
+pass ``on_progress=callback``. See ``help(kogo.compare_pdfs)`` for details.
 """
 
-from kogo.engine import ComparisonError, compare_pdfs
+from kogo.engine import (
+    ArtifactInfo,
+    Artifacts,
+    ComparisonError,
+    ComparisonResult,
+    FileInfo,
+    Files,
+    Legend,
+    PageRef,
+    Row,
+    RowChanges,
+    Settings,
+    Summary,
+    compare_pdfs,
+)
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
-__all__ = ["ComparisonError", "compare_pdfs", "__version__"]
+__all__ = [
+    "ComparisonError",
+    "compare_pdfs",
+    "__version__",
+    "ComparisonResult",
+    "Files",
+    "FileInfo",
+    "Settings",
+    "Summary",
+    "Legend",
+    "Artifacts",
+    "ArtifactInfo",
+    "PageRef",
+    "RowChanges",
+    "Row",
+]
