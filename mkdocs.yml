@@ -37,6 +37,9 @@ nav:
   - How it works: architecture.md
   - Recipes:
       - CI integration: recipes/ci-integration.md
+      - Batch processing: recipes/batch-processing.md
+      - Self-hosting behind auth: recipes/self-hosting-behind-auth.md
+      - LaTeX PR review: recipes/latex-ci-review.md
   - FAQ: faq.md
   - Contributing: contributing.md
   - Changelog: changelog.md
