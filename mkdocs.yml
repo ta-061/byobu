@@ -46,6 +46,30 @@ nav:
 
 plugins:
   - search
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          name: English
+          default: true
+          build: true
+        - locale: ja
+          name: 日本語
+          build: true
+          nav_translations:
+            Quick start: クイックスタート
+            Library API: ライブラリ API
+            CLI reference: CLI リファレンス
+            Web app: Web アプリ
+            How it works: 仕組み
+            Recipes: レシピ
+            CI integration: CI 連携
+            Batch processing: バッチ処理
+            Self-hosting behind auth: 認証付きセルフホスト
+            LaTeX PR review: LaTeX の PR レビュー
+            FAQ: よくある質問
+            Contributing: コントリビュート
+            Changelog: 変更履歴
   - mkdocstrings:
       handlers:
         python:
@@ -56,6 +80,7 @@ plugins:
             merge_init_into_class: true
 
 markdown_extensions:
+  - attr_list
   - admonition
   - pymdownx.details
   - pymdownx.superfences

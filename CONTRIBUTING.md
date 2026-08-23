@@ -45,3 +45,28 @@ mkdocs serve
 
 The site is built and deployed by `.github/workflows/pages.yml` on every push to
 `main`; nothing under `docs/site/manual/` should be committed by hand.
+
+### Translating the manual
+
+The manual supports multiple languages via
+[mkdocs-static-i18n](https://ultrabug.github.io/mkdocs-static-i18n/). A
+Japanese translation exists for every page (`docs-src/*.ja.md`,
+`docs-src/recipes/*.ja.md`); other languages are very welcome. To add one:
+
+1. Copy an existing page to `<page>.<locale>.md` (e.g. `cli.fr.md`) in the
+   same directory as the English original, and translate it. Keep code
+   blocks, flag names, and environment variable names unchanged.
+2. Register the language under `plugins.i18n.languages` in `mkdocs.yml`, and
+   add translated nav labels under `plugins.i18n.nav_translations.<locale>`.
+3. A page you haven't translated yet is fine to leave out — the plugin falls
+   back to the English version.
+4. `mkdocs serve` locally to check rendering and internal links before
+   opening the PR (heading anchors are generated from the translated heading
+   text, so in-page links like `architecture.md#page-alignment` need the
+   translated anchor in the translated file).
+
+The Library API page (`library-api.md`/`.ja.md`) is generated from Python
+docstrings via mkdocstrings, so its reference section stays in English
+regardless of page language unless the docstrings themselves are
+translated — that's a separate, larger effort and out of scope for a first
+translation PR.
