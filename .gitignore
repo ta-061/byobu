@@ -8,3 +8,4 @@ venv/
 data/
 .pytest_cache/
 kogo-diff/
+docs/site/manual/

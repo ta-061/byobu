@@ -1,0 +1,64 @@
+site_name: kogo manual
+site_description: Layout-aware PDF diff for revisions
+site_url: https://kogo.tatu-sec.dev/manual/
+repo_url: https://github.com/ta-061/kogo
+repo_name: ta-061/kogo
+edit_uri: edit/main/docs-src/
+
+docs_dir: docs-src
+site_dir: docs/site/manual
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - content.action.edit
+
+nav:
+  - Quick start: index.md
+  - Library API: library-api.md
+  - CLI reference: cli.md
+  - Web app: web-app.md
+  - How it works: architecture.md
+  - Recipes:
+      - CI integration: recipes/ci-integration.md
+  - FAQ: faq.md
+  - Contributing: contributing.md
+  - Changelog: changelog.md
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+            show_root_heading: true
+            docstring_style: google
+            merge_init_into_class: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
+  - toc:
+      permalink: true
