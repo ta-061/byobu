@@ -17,3 +17,21 @@ jobs:
       - run: pip install build
       - run: python -m build
       - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # release/v1
+
+  sbom:
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.13"
+      # Installing the serve extra so the SBOM covers the web app's
+      # dependencies too, not just the always-installed core.
+      - run: pip install -e '.[serve]' cyclonedx-bom
+      - run: cyclonedx-py environment --pyproject pyproject.toml -o sbom.json
+      - run: gh release upload "${{ github.event.release.tag_name }}" sbom.json
+        env:
+          GH_TOKEN: ${{ github.token }}
