@@ -24,9 +24,19 @@ import unittest
 _JOBS_DIR = tempfile.mkdtemp(prefix="kogo-test-jobs-")
 os.environ["JOBS_DIR"] = _JOBS_DIR
 
+import pymupdf as fitz  # noqa: E402
 from fastapi.testclient import TestClient  # noqa: E402
 
 from kogo.server.app import JOBS_DIR, app  # noqa: E402
+
+
+def _make_pdf_bytes(text: str) -> bytes:
+    document = fitz.open()
+    page = document.new_page(width=300, height=300)
+    page.insert_text((20, 40), text, fontsize=14)
+    data = document.tobytes()
+    document.close()
+    return data
 
 
 def tearDownModule() -> None:
@@ -80,6 +90,29 @@ class AppTests(unittest.TestCase):
         self.assertEqual(response.headers.get("x-content-type-options"), "nosniff")
         self.assertEqual(response.headers.get("referrer-policy"), "no-referrer")
         self.assertIn("default-src 'self'", response.headers.get("content-security-policy", ""))
+
+    def test_compare_endpoint_accepts_uploads_and_returns_a_result(self) -> None:
+        # Exercises the full /api/compare path, including the
+        # _limit_compare_concurrency middleware that admits requests before
+        # Starlette parses the multipart body.
+        old_bytes = _make_pdf_bytes("Sentence stays here.")
+        new_bytes = _make_pdf_bytes("Sentence changes here.")
+
+        response = self.client.post(
+            "/api/compare",
+            files={
+                "old_pdf": ("old.pdf", old_bytes, "application/pdf"),
+                "new_pdf": ("new.pdf", new_bytes, "application/pdf"),
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.json()
+        self.assertIn("job_id", payload)
+        self.assertGreaterEqual(payload["result"]["summary"]["added_words"], 1)
+
+        job_response = self.client.get(f"/api/jobs/{payload['job_id']}")
+        self.assertEqual(job_response.status_code, 200)
 
 
 if __name__ == "__main__":

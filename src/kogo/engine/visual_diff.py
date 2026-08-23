@@ -29,7 +29,15 @@ from .words import Word
 # The PDF spec allows page boxes up to 14,400pt/side; without this, such a
 # page rendered at the max supported DPI would allocate multi-gigabyte RGB
 # buffers. Mirrors the fixed-thumbnail approach already used for signatures.
-MAX_RENDER_PIXELS = 40_000_000
+#
+# Sized against the default Docker deployment's memory budget, not just a
+# single allocation: _visual_differences holds both pages' RGB images plus
+# several transient single-channel buffers (diff/blur/masks/morphology) at
+# once, roughly ~13 bytes/pixel combined, so one worst-case comparison at
+# this ceiling is ~310MB; docker-compose.yml's default MAX_CONCURRENT_JOBS=2
+# against mem_limit: 2g leaves comfortable headroom for two of those at once
+# plus interpreter/library overhead. Raise together with those settings.
+MAX_RENDER_PIXELS = 24_000_000
 
 
 @dataclass(frozen=True)

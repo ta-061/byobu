@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import json
 import logging
 import os
@@ -127,7 +128,9 @@ app.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
 _INDEX_HTML = (
     (APP_DIR / "templates" / "index.html")
     .read_text(encoding="utf-8")
-    .replace("%KOGO_SOURCE_URL%", KOGO_SOURCE_URL)
+    # KOGO_SOURCE_URL is operator-set (not attacker input) but there's no
+    # reason not to escape it into the href attribute correctly.
+    .replace("%KOGO_SOURCE_URL%", html.escape(KOGO_SOURCE_URL, quote=True))
 )
 
 
@@ -165,6 +168,20 @@ async def _limit_body_size(request: Request, call_next):
     # If Content-Length is absent (e.g. chunked transfer), we cannot reject
     # before Starlette buffers the body; _save_pdf's streaming size check is
     # the remaining backstop for that case.
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def _limit_compare_concurrency(request: Request, call_next):
+    # Acquired here, before call_next, so admission happens before Starlette
+    # parses and spools the multipart body - otherwise an unbounded number of
+    # concurrent requests could each buffer close to MAX_REQUEST_BYTES while
+    # waiting for a slot, since FastAPI parses UploadFile parameters as part
+    # of routing, before the endpoint function (and any semaphore inside it)
+    # ever runs.
+    if request.url.path == "/api/compare" and request.method == "POST":
+        async with comparison_slots:
+            return await call_next(request)
     return await call_next(request)
 
 
@@ -265,32 +282,33 @@ async def compare(
     new_name = Path(new_pdf.filename or "new.pdf").name[:180]
 
     try:
-        async with comparison_slots:
-            job_dir.mkdir(mode=0o700, parents=True)
-            await _save_pdf(old_pdf, old_path)
-            await _save_pdf(new_pdf, new_path)
-            try:
-                result = await asyncio.wait_for(
-                    run_in_threadpool(
-                        compare_pdfs,
-                        old_path,
-                        new_path,
-                        job_dir,
-                        old_name=old_name,
-                        new_name=new_name,
-                        dpi=dpi,
-                        sensitivity=sensitivity,
-                        max_pages=MAX_PAGES,
-                    ),
-                    timeout=JOB_TIMEOUT_SECONDS,
-                )
-            except asyncio.TimeoutError as exc:
-                # Only abandons the threadpool task: CPython cannot force-kill
-                # a thread running native PyMuPDF/OpenCV code. The `async with`
-                # block still releases the semaphore on the way out.
-                raise ComparisonError(
-                    "Comparison timed out. Try a smaller file, fewer pages, or a lower DPI."
-                ) from exc
+        # Concurrency is admitted by the _limit_compare_concurrency middleware,
+        # before this handler (and Starlette's multipart parsing) ever runs.
+        job_dir.mkdir(mode=0o700, parents=True)
+        await _save_pdf(old_pdf, old_path)
+        await _save_pdf(new_pdf, new_path)
+        try:
+            result = await asyncio.wait_for(
+                run_in_threadpool(
+                    compare_pdfs,
+                    old_path,
+                    new_path,
+                    job_dir,
+                    old_name=old_name,
+                    new_name=new_name,
+                    dpi=dpi,
+                    sensitivity=sensitivity,
+                    max_pages=MAX_PAGES,
+                ),
+                timeout=JOB_TIMEOUT_SECONDS,
+            )
+        except asyncio.TimeoutError as exc:
+            # Only abandons the threadpool task: CPython cannot force-kill a
+            # thread running native PyMuPDF/OpenCV code - the middleware's
+            # `async with` still releases the concurrency slot on the way out.
+            raise ComparisonError(
+                "Comparison timed out. Try a smaller file, fewer pages, or a lower DPI."
+            ) from exc
         # Inputs are unnecessary after generated artifacts are complete.
         old_path.unlink(missing_ok=True)
         new_path.unlink(missing_ok=True)

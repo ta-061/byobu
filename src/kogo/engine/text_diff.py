@@ -16,20 +16,61 @@
 from __future__ import annotations
 
 import re
-from collections import defaultdict
+from collections import Counter, defaultdict
 from difflib import SequenceMatcher
-from typing import Sequence
+from typing import Callable, Sequence
 
 from .words import Word, TextLine, _is_cjk, _words_rect
+
+# SequenceMatcher's own autojunk heuristic is off below (see _changed_words)
+# because it's unreliable for CJK: a common particle can legitimately exceed
+# the 1%-of-a-long-sequence "popular" cutoff it uses, which would wrongly
+# suppress real matches in long documents. Without it, difflib is quadratic
+# in the frequency of repeated tokens - a handful of tokens repeated tens of
+# thousands of times (a crafted PDF page, or just degenerate content) can pin
+# a CPU core for minutes. The actual per-token cost is
+# frequency_in_old * frequency_in_new (each occurrence scans every occurrence
+# of the same token on the other side), so _bounded_isjunk greedily junks the
+# highest-cost tokens - regardless of whether that cost comes from one very
+# frequent token or many moderately frequent ones - until the estimated
+# remaining cost is under budget. Calibrated so the worst case (a handful of
+# tokens repeated tens of thousands of times) finishes in well under a
+# second; see tests/test_engine.py for the regression test.
+_MAX_MATCH_COST = 5_000_000
+
+
+def _bounded_isjunk(
+    old_tokens: Sequence[str], new_tokens: Sequence[str]
+) -> Callable[[str], bool] | None:
+    old_counts = Counter(old_tokens)
+    new_counts = Counter(new_tokens)
+    costs = sorted(
+        (
+            (old_counts[token] * new_counts[token], token)
+            for token in old_counts
+            if token in new_counts
+        ),
+        reverse=True,
+    )
+    remaining_cost = sum(cost for cost, _ in costs)
+    hot_tokens: set[str] = set()
+    for cost, token in costs:
+        if remaining_cost <= _MAX_MATCH_COST:
+            break
+        hot_tokens.add(token)
+        remaining_cost -= cost
+    return hot_tokens.__contains__ if hot_tokens else None
 
 
 def _changed_words(
     old_words: Sequence[Word], new_words: Sequence[Word]
 ) -> tuple[list[Word], list[Word]]:
+    old_tokens = [word.normalized for word in old_words]
+    new_tokens = [word.normalized for word in new_words]
     matcher = SequenceMatcher(
-        None,
-        [word.normalized for word in old_words],
-        [word.normalized for word in new_words],
+        _bounded_isjunk(old_tokens, new_tokens),
+        old_tokens,
+        new_tokens,
         autojunk=False,
     )
     deleted: list[Word] = []

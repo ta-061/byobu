@@ -23,6 +23,17 @@ from typing import Sequence
 
 import pymupdf as fitz
 
+# get_text("rawdict") defaults to including full decoded image bytes for every
+# image block (TEXTFLAGS_RAWDICT has TEXT_PRESERVE_IMAGES set). _page_words
+# only ever reads text blocks (type == 0) and skips image blocks entirely, so
+# that decode is pure waste - and a real amplification risk, since a small
+# PDF reusing one large image across many pages forces it to be decoded again
+# on every occurrence. Clearing the flag is a no-op for the text blocks kogo
+# actually reads (verified: the only difference is each remaining block's
+# internal `number`, an index that's only ever used as a same-page grouping
+# key, never compared across documents).
+_RAWDICT_FLAGS = fitz.TEXTFLAGS_RAWDICT & ~fitz.TEXT_PRESERVE_IMAGES
+
 
 @dataclass(frozen=True)
 class Word:
@@ -74,7 +85,7 @@ def _page_words(page: fitz.Page) -> list[Word]:
     """Extract positioned tokens, keeping CJK changes at character precision."""
     words: list[Word] = []
     order = 0
-    raw = page.get_text("rawdict", sort=True)
+    raw = page.get_text("rawdict", sort=True, flags=_RAWDICT_FLAGS)
     for block_position, block in enumerate(raw.get("blocks", [])):
         if block.get("type") != 0:
             continue

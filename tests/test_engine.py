@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -605,6 +606,78 @@ class DiffEngineTests(unittest.TestCase):
                 finally:
                     reopened.close()
 
+    def test_direct_action_dicts_and_javascript_uri_are_scrubbed(self) -> None:
+        # doc.scrub(javascript=True) only clears the action type on indirect
+        # objects it walks; a *direct* (inline) action dict, or a page/widget
+        # /AA (additional-actions) dict, survives it untouched. A
+        # javascript:-scheme link URI is a separate active-content vector
+        # that LINK_URI's "safe" classification doesn't otherwise filter.
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            old_path = root / "old.pdf"
+            new_path = root / "new.pdf"
+            for path in (old_path, new_path):
+                document = fitz.open()
+                page = document.new_page(width=200, height=200)
+                page.insert_text((20, 20), "Hello world", fontsize=12)
+
+                catalog_xref = document.pdf_catalog()
+                document.xref_set_key(
+                    catalog_xref,
+                    "OpenAction",
+                    "<< /Type /Action /S /JavaScript /JS (app.alert(2)) >>",
+                )
+                document.xref_set_key(
+                    page.xref,
+                    "AA",
+                    "<< /O << /Type /Action /S /JavaScript /JS (app.alert(3)) >> >>",
+                )
+                widget = fitz.Widget()
+                widget.field_name = "f1"
+                widget.field_type = fitz.PDF_WIDGET_TYPE_TEXT
+                widget.rect = fitz.Rect(60, 60, 140, 80)
+                annot = page.add_widget(widget)
+                document.xref_set_key(
+                    annot.xref,
+                    "AA",
+                    "<< /Fo << /Type /Action /S /JavaScript /JS (app.alert(4)) >> >>",
+                )
+                page.insert_link(
+                    {
+                        "kind": fitz.LINK_URI,
+                        "uri": "javascript:app.alert(5)",
+                        "from": fitz.Rect(0, 100, 50, 150),
+                    }
+                )
+                document.save(path)
+                document.close()
+
+            result = compare_pdfs(
+                old_path,
+                new_path,
+                root / "result",
+                old_name="old.pdf",
+                new_name="new.pdf",
+                dpi=96,
+            )
+
+            for artifact in ("old", "new"):
+                output_path = root / "result" / result["artifacts"][artifact]["name"]
+                output_bytes = output_path.read_bytes()
+                self.assertNotIn(b"app.alert", output_bytes)
+                self.assertNotIn(b"javascript:", output_bytes)
+
+                reopened = fitz.open(output_path)
+                try:
+                    for page in reopened:
+                        for link in page.links():
+                            self.assertIn(link.get("kind"), (fitz.LINK_GOTO, fitz.LINK_URI))
+                            self.assertFalse(
+                                str(link.get("uri", "")).lower().startswith("javascript:")
+                            )
+                finally:
+                    reopened.close()
+
     def test_library_api_with_default_names(self) -> None:
         import kogo
 
@@ -663,6 +736,70 @@ class DiffEngineTests(unittest.TestCase):
             )
             self.assertTrue(all(total == len(comparing_calls) for _, _, total in comparing_calls))
             self.assertIn(("aligned", 1, 1), calls)
+
+    def test_changed_words_stays_fast_on_pathological_repeated_tokens(self) -> None:
+        from kogo.engine.text_diff import _changed_words
+        from kogo.engine.words import Word
+
+        def make_words(tokens: list[str]) -> list[Word]:
+            rect = fitz.Rect(0, 0, 10, 10)
+            return [
+                Word(
+                    text=token,
+                    normalized=token,
+                    rect=rect,
+                    block=0,
+                    line=0,
+                    order=index,
+                    size=10.0,
+                    bold=False,
+                    italic=False,
+                )
+                for index, token in enumerate(tokens)
+            ]
+
+        # A handful of tokens repeated tens of thousands of times (a crafted
+        # PDF page, or just degenerate content) - unguarded, difflib's
+        # autojunk=False matching on this shape takes well over a minute.
+        alphabet = ["alpha", "bravo", "charlie", "delta", "echo"]
+        old_tokens = [alphabet[index % len(alphabet)] for index in range(20000)]
+        new_tokens = [alphabet[(index + 1) % len(alphabet)] for index in range(20000)]
+
+        start = time.monotonic()
+        _changed_words(make_words(old_tokens), make_words(new_tokens))
+        elapsed = time.monotonic() - start
+
+        self.assertLess(elapsed, 5.0)
+
+    def test_image_heavy_page_extraction_stays_fast(self) -> None:
+        from kogo.engine.words import _page_words
+
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "image-heavy.pdf"
+            document = fitz.open()
+            pixmap = fitz.Pixmap(fitz.csRGB, fitz.IRect(0, 0, 1600, 1600), False)
+            pixmap.clear_with(128)
+            image_bytes = pixmap.tobytes("png")
+            for index in range(10):
+                page = document.new_page(width=600, height=800)
+                page.insert_image(fitz.Rect(0, 0, 600, 800), stream=image_bytes)
+                page.insert_text((20, 20), f"page {index}", fontsize=10)
+            document.save(path)
+            document.close()
+
+            document = fitz.open(path)
+            try:
+                start = time.monotonic()
+                for page in document:
+                    _page_words(page)
+                elapsed = time.monotonic() - start
+            finally:
+                document.close()
+
+            # Unguarded (get_text("rawdict")'s default TEXT_PRESERVE_IMAGES),
+            # re-decoding this reused image on every page takes several
+            # seconds; guarded, it's near-instant.
+            self.assertLess(elapsed, 2.0)
 
 
 if __name__ == "__main__":

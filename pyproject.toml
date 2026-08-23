@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "kogo"
-version = "0.1.6"
+version = "0.1.7"
 description = "Layout-aware PDF diff for revisions: added/deleted text, figures, equations, and annotations, in the browser and in marked PDFs."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -27,7 +27,9 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
-    "PyMuPDF>=1.24,<2",
+    # 1.27.1 bundles the MuPDF fix for CVE-2026-3308 (heap out-of-bounds
+    # write via a crafted PDF's image data, CVSS 7.8).
+    "PyMuPDF>=1.27.1,<2",
     "numpy>=1.26,<3",
     "opencv-python-headless>=4.9,<5",
 ]
@@ -36,7 +38,14 @@ dependencies = [
 serve = [
     "fastapi>=0.110,<1",
     "uvicorn[standard]>=0.27,<1",
-    "python-multipart>=0.0.9,<1",
+    # 0.0.30 fixes three known DoS CVEs in multipart/querystring parsing
+    # (GHSA-2jv5-9r88-3w3p, GHSA-pp6c-gr5w-3c5g, GHSA-5rvq-cxj2-64vf), all
+    # reachable via /api/compare's upload form.
+    "python-multipart>=0.0.30,<1",
+    # Not imported directly - transitive via fastapi/starlette - but pinned
+    # explicitly so an install can't land on a starlette below 0.40.0, which
+    # fixes CVE-2024-47874 (unbounded multipart form-field buffering DoS).
+    "starlette>=0.40,<2",
 ]
 dev = [
     "httpx",

@@ -44,7 +44,7 @@ from kogo.engine import (
     compare_pdfs,
 )
 
-__version__ = "0.1.6"
+__version__ = "0.1.7"
 
 __all__ = [
     "ComparisonError",

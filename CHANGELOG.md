@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.7 - 2026-08-23 - Security audit (static + dynamic, cross-checked with Codex CLI)
+
+Findings from a fresh audit, verified with hands-on repro (not just static review) and cross-checked against an independent `codex exec` review; see individual items below.
+
+- Engine: fixed an algorithmic-complexity DoS in text diffing — a PDF page repeating a handful of short tokens tens of thousands of times took 77s in `_changed_words`'s `difflib.SequenceMatcher` call (measured); a crafted few-hundred-KB upload could pin a CPU core well past the request timeout. Fixed with a cost-aware junk filter (`_bounded_isjunk` in `text_diff.py`) that closes this without reintroducing the CJK-diff-quality regression `autojunk=True` would cause.
+- Engine: text extraction (`_page_words`) no longer forces PyMuPDF to decode every image on the page (`TEXT_PRESERVE_IMAGES`) just to discard it — a PDF reusing one large image across many pages took 5.7s/132MB per comparison, 0.01s after the fix (measured, 568x), with no change to the extracted text.
+- Engine: `_scrub_active_content` now also strips `/OpenAction`/`/AA` from the document catalog, every page, and every form-field widget (`doc.scrub()`'s `javascript=True` only clears the action type on indirect objects it walks, not a direct/inline action dict or page-/widget-level additional-actions), and drops `javascript:`-scheme link URIs. New tests reproduce each gap directly (and fail against the pre-fix code).
+- Dependencies: raised floors to exclude versions with known CVEs reachable through kogo's own code paths — `PyMuPDF>=1.27.1` (CVE-2026-3308, heap out-of-bounds write via crafted PDF image data), `python-multipart>=0.0.30` (three DoS advisories in multipart/querystring parsing), and an explicit `starlette>=0.40,<2` floor (CVE-2024-47874, unbounded multipart form-field buffering) for what was previously an undeclared transitive dependency.
+- Web app: the `/api/compare` concurrency limit is now enforced by middleware, before Starlette parses the multipart upload, instead of after — previously, arbitrarily many concurrent requests could each buffer close to the request-size limit before `MAX_CONCURRENT_JOBS` ever applied.
+- Web app: `MAX_RENDER_PIXELS` lowered from 40M to 24M pixels, so two concurrent worst-case visual diffs leave comfortable headroom under `docker-compose.yml`'s default 2 GB memory limit.
+- Web app: the operator-set `KOGO_SOURCE_URL` is now HTML-escaped before being templated into the footer link (hardening; not attacker-reachable in the normal threat model).
+- Project: added `ROADMAP.md` item for a global job-storage quota; `MAX_PAGES`/timeout/thread-abandonment limitations noted in earlier releases and ROADMAP item 12 remain tracked as-is — this pass's engine fixes remove the two cheapest ways to create a long-running job in the first place.
+
 ## 0.1.6 - 2026-08-23 - Library API round-out & project infrastructure
 
 - Library API: `compare_pdfs` return type is now the typed `ComparisonResult` (and nested `Files`/`Settings`/`Summary`/`Legend`/`Artifacts`/`ArtifactInfo`/`Row`/`RowChanges`/`PageRef`) `TypedDict`s, exported from `kogo` for IDE/type-checker support. Runtime shape is unchanged.

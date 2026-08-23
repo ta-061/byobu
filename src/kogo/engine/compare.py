@@ -48,6 +48,29 @@ from .words import Word, _page_words
 # dropped by _scrub_active_content.
 _SAFE_LINK_KINDS = frozenset((fitz.LINK_GOTO, fitz.LINK_URI))
 
+# Only these URI schemes are kept on a LINK_URI link; anything else (notably
+# javascript:, which some viewers execute on click) is dropped.
+_SAFE_URI_PREFIXES = ("http://", "https://")
+
+# Keys that can carry their own action (e.g. a JavaScript action) on the
+# document catalog, a page, or a form-field widget.
+_ACTIVE_ACTION_KEYS = ("OpenAction", "AA")
+
+
+def _strip_object_actions(doc: fitz.Document, xref: int) -> None:
+    """Remove OpenAction/AA (additional-actions) from one PDF object.
+
+    doc.scrub(javascript=True) walks indirect objects and clears the action
+    type on each one, but it does not recurse into a *direct* (inline,
+    non-indirect) action dict, nor into page- or widget-level /AA
+    dictionaries - either of which can carry an untouched JavaScript action.
+    Setting the key to the PDF null object removes it regardless of whether
+    it was originally a direct dict or an indirect reference.
+    """
+    for key in _ACTIVE_ACTION_KEYS:
+        if doc.xref_get_key(xref, key)[0] != "null":
+            doc.xref_set_key(xref, key, "null")
+
 
 def _scrub_active_content(doc: fitz.Document) -> None:
     """Strip JavaScript, embedded/attached files, and dangerous link actions.
@@ -71,9 +94,18 @@ def _scrub_active_content(doc: fitz.Document) -> None:
         reset_responses=True,
         thumbnails=True,
     )
+    _strip_object_actions(doc, doc.pdf_catalog())
     for page in doc:
+        _strip_object_actions(doc, page.xref)
+        for widget in page.widgets():
+            _strip_object_actions(doc, widget.xref)
         for link in list(page.links()):
-            if link.get("kind") not in _SAFE_LINK_KINDS:
+            kind = link.get("kind")
+            if kind not in _SAFE_LINK_KINDS:
+                page.delete_link(link)
+            elif kind == fitz.LINK_URI and not str(link.get("uri") or "").lower().startswith(
+                _SAFE_URI_PREFIXES
+            ):
                 page.delete_link(link)
 
 

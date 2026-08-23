@@ -16,3 +16,4 @@ Prioritized, roughly highest-impact first. Not a commitment or a schedule.
 12. Process-pool isolation for `compare_pdfs`, so a timed-out comparison job can actually be `terminate()`-d instead of merely abandoned in a thread
 13. ~~Docker base-image digest pinning (`node:26-alpine`, `python:3.14-slim`) instead of mutable tags~~ (done in 0.1.5)
 14. Evaluate a dependency lockfile (`pip-compile`/`uv lock`) for reproducible, reviewable Python dependency bumps (major-version upper bounds were added in 0.1.5)
+15. Global job-storage quota (bounded total bytes/job count across `JOBS_DIR`, with eviction), so many completed jobs can't fill the volume within `JOB_TTL_HOURS` — item 12's process-pool isolation is the other half of bounding a single misbehaving job; this one bounds accumulation across many of them
