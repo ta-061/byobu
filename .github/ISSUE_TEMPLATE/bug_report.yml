@@ -1,0 +1,38 @@
+name: Bug report
+description: Something in kogo isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: |
+        CLI command / library call / web app steps. If possible, attach a
+        minimal pair of PDFs that reproduce the issue (or describe what's
+        distinctive about them: scanned, encrypted, multi-column, CJK text,
+        annotations, etc.) — PDF diff bugs are usually specific to the input.
+      placeholder: |
+        kogo diff old.pdf new.pdf -o out/
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: kogo version
+      description: Output of `kogo --version` (or the pip/Docker image version)
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, and whether you're using pip, Docker, or the hosted demo
+    validations:
+      required: false

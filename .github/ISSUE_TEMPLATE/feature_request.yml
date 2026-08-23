@@ -1,0 +1,18 @@
+name: Feature request
+description: Suggest an idea, or an addition to the diff engine, CLI, library API, or web app
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do that kogo doesn't support today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How you imagine this working. Check ROADMAP.md first — it may already be tracked.
+    validations:
+      required: false
