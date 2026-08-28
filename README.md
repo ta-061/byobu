@@ -8,9 +8,9 @@ kogo (校合) is the Japanese publishing term for checking a revision against th
 
 Drop in two PDFs and get a browser-side comparison, no upload leaves your machine:
 
-![kogo web app walkthrough: choosing an old and new PDF, running the comparison, and reviewing the highlighted side-by-side result in the browser](https://ta-061.github.io/kogo/demo-en.gif)
+![kogo web app walkthrough: choosing an old and new PDF, running the comparison, and reviewing the highlighted side-by-side result in the browser](https://ta-061.github.io/kogo/demo.gif)
 
-<img src="https://ta-061.github.io/kogo/screenshot-results.png" alt="kogo comparison results showing added, deleted, visual, and style-only changes across aligned pages" width="900">
+<img src="https://ta-061.github.io/kogo/demo-preview.png" alt="Side-by-side diff of a revised report: a changed word highlighted red on the old page and green on the new page, plus a changed figure" width="900">
 
 Website: <https://kogo.tatu-sec.dev/>
 Documentation: <https://kogo.tatu-sec.dev/manual/>

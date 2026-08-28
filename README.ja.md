@@ -8,9 +8,9 @@ kogo(校合)は、改訂版を原本と照合するという意味の、日本�
 
 旧版・新版のPDFを選ぶだけで、ブラウザ上でそのまま比較結果を確認できます。アップロードした内容が外部に送信されることはありません:
 
-![kogoのWebアプリの操作フロー: 旧版・新版のPDFを選択し、比較を実行し、ハイライトされた左右比較結果をブラウザで確認する様子](https://ta-061.github.io/kogo/demo-ja.gif)
+![kogoのWebアプリの操作フロー: 旧版・新版のPDFを選択し、比較を実行し、ハイライトされた左右比較結果をブラウザで確認する様子](https://ta-061.github.io/kogo/demo.gif)
 
-<img src="https://ta-061.github.io/kogo/screenshot-results.png" alt="kogoの比較結果。追加・削除・視覚差分・スタイルのみの変更がページ全体でハイライトされている" width="900">
+<img src="https://ta-061.github.io/kogo/demo-preview.png" alt="改訂された報告書の差分。変更された単語が旧ページでは赤、新ページでは緑でハイライトされ、変更された図も示されている" width="900">
 
 プロジェクトサイト: <https://kogo.tatu-sec.dev/>
 ドキュメント: <https://kogo.tatu-sec.dev/manual/>
