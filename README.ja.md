@@ -6,6 +6,10 @@ kogo(校合)は、改訂版を原本と照合するという意味の、日本�
 
 ![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
+`kogo diff old.pdf new.pdf` — 削除は旧ページに赤、追加は新ページに緑でハイライトされ、変更された図の領域は両方でマークされます:
+
+![旧版は赤で削除箇所、新版は緑で追加箇所がハイライトされるkogoの差分結果](https://ta-061.github.io/kogo/demo-ja.gif)
+
 プロジェクトサイト: <https://kogo.tatu-sec.dev/>
 ドキュメント: <https://kogo.tatu-sec.dev/manual/>
 

@@ -6,6 +6,10 @@ kogo (校合) is the Japanese publishing term for checking a revision against th
 
 ![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
 
+`kogo diff old.pdf new.pdf` — deletions highlighted in red on the old page, additions in green on the new page, a changed figure region flagged on both:
+
+![kogo diff of two revisions, old page highlighted in red for deletions and new page highlighted in green for additions](https://ta-061.github.io/kogo/demo-en.gif)
+
 Website: <https://kogo.tatu-sec.dev/>
 Documentation: <https://kogo.tatu-sec.dev/manual/>
 
