@@ -1,14 +1,16 @@
 # kogo
 
+[English](README.md) | **日本語**
+
 kogo は、更新前と更新後のPDFを比較し、追加・削除された文字、図、注釈をブラウザとマーカー入りPDFの両方でハイライトする、レイアウトを考慮したPDF差分ツールです。
 
 kogo(校合)は、改訂版を原本と照合するという意味の、日本の出版用語に由来する名前です。
 
-![kogo results](https://ta-061.github.io/kogo/screenshot-results.png)
-
 旧版・新版のPDFを選ぶだけで、ブラウザ上でそのまま比較結果を確認できます。アップロードした内容が外部に送信されることはありません:
 
 ![kogoのWebアプリの操作フロー: 旧版・新版のPDFを選択し、比較を実行し、ハイライトされた左右比較結果をブラウザで確認する様子](https://ta-061.github.io/kogo/demo-ja.gif)
+
+<img src="https://ta-061.github.io/kogo/screenshot-results.png" alt="kogoの比較結果。追加・削除・視覚差分・スタイルのみの変更がページ全体でハイライトされている" width="900">
 
 プロジェクトサイト: <https://kogo.tatu-sec.dev/>
 ドキュメント: <https://kogo.tatu-sec.dev/manual/>
