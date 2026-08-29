@@ -31,7 +31,7 @@ dependencies = [
     # write via a crafted PDF's image data, CVSS 7.8).
     "PyMuPDF>=1.27.1,<2",
     "numpy>=1.26,<3",
-    "opencv-python-headless>=4.9,<5",
+    "opencv-python-headless>=4.9,<6",
 ]
 
 [project.optional-dependencies]
